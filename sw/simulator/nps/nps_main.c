@@ -62,7 +62,7 @@ static void nps_main_init(void);
 static void nps_main_display(void);
 static void nps_main_run_sim_step(void);
 static gboolean nps_main_periodic(gpointer data __attribute__((unused)));
-
+static int fake_nps_main_periodic();
 int pauseSignal = 0;
 
 void tstp_hdl(int n __attribute__((unused)))
@@ -88,6 +88,106 @@ double time_to_double(struct timeval *t)
   return ((double)t->tv_sec + (double)(t->tv_usec * 1e-6));
 }
 
+int pprz_main(int argc, char **argv)
+{
+
+  if (!nps_main_parse_options(argc, argv)) { return 1; }
+
+  /* disable buffering for stdout,
+   * so it properly works in paparazzi center
+   * where it is not detected as interactive
+   * and hence fully buffered instead of line buffered
+   */
+  setbuf(stdout, NULL);
+
+  nps_main_init();
+
+  signal(SIGCONT, cont_hdl);
+  signal(SIGTSTP, tstp_hdl);
+  printf("Time factor is %f. (Press Ctrl-Z to change)\n", nps_main.host_time_factor);
+
+  nps_main_run_sim_step();
+  nps_main_display();
+  fake_nps_main_periodic();
+
+  return 0;
+}
+
+static int fake_nps_main_periodic()
+{
+  struct timeval tv_now;
+  double  host_time_now;
+
+  if (pauseSignal) {
+    char line[128];
+    double tf = 1.0;
+    double t1, t2, irt;
+
+    gettimeofday(&tv_now, NULL);
+    t1 = time_to_double(&tv_now);
+    /* unscale to initial real time*/
+    irt = t1 - (t1 - nps_main.scaled_initial_time) * nps_main.host_time_factor;
+
+    printf("Press <enter> to continue (or CTRL-Z to suspend).\nEnter a new time factor if needed (current: %f): ",
+           nps_main.host_time_factor);
+    fflush(stdout);
+    if (fgets(line, 127, stdin)) {
+      if ((sscanf(line, " %le ", &tf) == 1)) {
+        if (tf > 0 && tf < 1000) {
+          nps_main.host_time_factor = tf;
+        }
+      }
+      printf("Time factor is %f\n", nps_main.host_time_factor);
+    }
+    gettimeofday(&tv_now, NULL);
+    t2 = time_to_double(&tv_now);
+    /* add the pause to initial real time */
+    irt += t2 - t1;
+    nps_main.real_initial_time += t2 - t1;
+    /* convert to scaled initial real time */
+    nps_main.scaled_initial_time = t2 - (t2 - irt) / nps_main.host_time_factor;
+    pauseSignal = 0;
+  }
+
+  gettimeofday(&tv_now, NULL);
+  host_time_now = time_to_double(&tv_now);
+  double host_time_elapsed = nps_main.host_time_factor * (host_time_now  - nps_main.scaled_initial_time);
+
+#if DEBUG_NPS_TIME
+  printf("%f,%f,%f,%f,%f,%f,", nps_main.host_time_factor, host_time_elapsed, host_time_now, nps_main.scaled_initial_time,
+         nps_main.sim_time, nps_main.display_time);
+#endif
+
+  int cnt = 0;
+  static int prev_cnt = 0;
+  static int grow_cnt = 0;
+  while (nps_main.sim_time <= host_time_elapsed) {
+    nps_main_run_sim_step();
+    nps_main.sim_time += SIM_DT;
+    if (nps_main.display_time < (host_time_now - nps_main.real_initial_time)) {
+      nps_main_display();
+      nps_main.display_time += DISPLAY_DT;
+    }
+    cnt++;
+  }
+
+  /* Check to make sure the simulation doesn't get too far behind real time looping */
+  if (cnt > (prev_cnt)) {grow_cnt++;}
+  else { grow_cnt--;}
+  if (grow_cnt < 0) {grow_cnt = 0;}
+  prev_cnt = cnt;
+
+  if (grow_cnt > 10) {
+    printf("Warning: The time factor is too large for efficient operation! Please reduce the time factor.\n");
+  }
+
+#if DEBUG_NPS_TIME
+  printf("%f,%f\n", nps_main.sim_time, nps_main.display_time);
+#endif
+
+  return 1;
+}
+
 int main(int argc, char **argv)
 {
 
@@ -111,6 +211,82 @@ int main(int argc, char **argv)
   g_main_loop_run(ml);
 
   return 0;
+}
+
+static gboolean nps_main_periodic(gpointer data __attribute__((unused)))
+{
+  struct timeval tv_now;
+  double  host_time_now;
+
+  if (pauseSignal) {
+    char line[128];
+    double tf = 1.0;
+    double t1, t2, irt;
+
+    gettimeofday(&tv_now, NULL);
+    t1 = time_to_double(&tv_now);
+    /* unscale to initial real time*/
+    irt = t1 - (t1 - nps_main.scaled_initial_time) * nps_main.host_time_factor;
+
+    printf("Press <enter> to continue (or CTRL-Z to suspend).\nEnter a new time factor if needed (current: %f): ",
+           nps_main.host_time_factor);
+    fflush(stdout);
+    if (fgets(line, 127, stdin)) {
+      if ((sscanf(line, " %le ", &tf) == 1)) {
+        if (tf > 0 && tf < 1000) {
+          nps_main.host_time_factor = tf;
+        }
+      }
+      printf("Time factor is %f\n", nps_main.host_time_factor);
+    }
+    gettimeofday(&tv_now, NULL);
+    t2 = time_to_double(&tv_now);
+    /* add the pause to initial real time */
+    irt += t2 - t1;
+    nps_main.real_initial_time += t2 - t1;
+    /* convert to scaled initial real time */
+    nps_main.scaled_initial_time = t2 - (t2 - irt) / nps_main.host_time_factor;
+    pauseSignal = 0;
+  }
+
+  gettimeofday(&tv_now, NULL);
+  host_time_now = time_to_double(&tv_now);
+  double host_time_elapsed = nps_main.host_time_factor * (host_time_now  - nps_main.scaled_initial_time);
+
+#if DEBUG_NPS_TIME
+  printf("%f,%f,%f,%f,%f,%f,", nps_main.host_time_factor, host_time_elapsed, host_time_now, nps_main.scaled_initial_time,
+         nps_main.sim_time, nps_main.display_time);
+#endif
+
+  int cnt = 0;
+  static int prev_cnt = 0;
+  static int grow_cnt = 0;
+  while (nps_main.sim_time <= host_time_elapsed) {
+    nps_main_run_sim_step();
+    nps_main.sim_time += SIM_DT;
+    if (nps_main.display_time < (host_time_now - nps_main.real_initial_time)) {
+      nps_main_display();
+      nps_main.display_time += DISPLAY_DT;
+    }
+    cnt++;
+  }
+
+  /* Check to make sure the simulation doesn't get too far behind real time looping */
+  if (cnt > (prev_cnt)) {grow_cnt++;}
+  else { grow_cnt--;}
+  if (grow_cnt < 0) {grow_cnt = 0;}
+  prev_cnt = cnt;
+
+  if (grow_cnt > 10) {
+    printf("Warning: The time factor is too large for efficient operation! Please reduce the time factor.\n");
+  }
+
+#if DEBUG_NPS_TIME
+  printf("%f,%f\n", nps_main.sim_time, nps_main.display_time);
+#endif
+
+  return TRUE;
+
 }
 
 
@@ -214,81 +390,6 @@ void nps_set_time_factor(float time_factor)
 }
 
 
-static gboolean nps_main_periodic(gpointer data __attribute__((unused)))
-{
-  struct timeval tv_now;
-  double  host_time_now;
-
-  if (pauseSignal) {
-    char line[128];
-    double tf = 1.0;
-    double t1, t2, irt;
-
-    gettimeofday(&tv_now, NULL);
-    t1 = time_to_double(&tv_now);
-    /* unscale to initial real time*/
-    irt = t1 - (t1 - nps_main.scaled_initial_time) * nps_main.host_time_factor;
-
-    printf("Press <enter> to continue (or CTRL-Z to suspend).\nEnter a new time factor if needed (current: %f): ",
-           nps_main.host_time_factor);
-    fflush(stdout);
-    if (fgets(line, 127, stdin)) {
-      if ((sscanf(line, " %le ", &tf) == 1)) {
-        if (tf > 0 && tf < 1000) {
-          nps_main.host_time_factor = tf;
-        }
-      }
-      printf("Time factor is %f\n", nps_main.host_time_factor);
-    }
-    gettimeofday(&tv_now, NULL);
-    t2 = time_to_double(&tv_now);
-    /* add the pause to initial real time */
-    irt += t2 - t1;
-    nps_main.real_initial_time += t2 - t1;
-    /* convert to scaled initial real time */
-    nps_main.scaled_initial_time = t2 - (t2 - irt) / nps_main.host_time_factor;
-    pauseSignal = 0;
-  }
-
-  gettimeofday(&tv_now, NULL);
-  host_time_now = time_to_double(&tv_now);
-  double host_time_elapsed = nps_main.host_time_factor * (host_time_now  - nps_main.scaled_initial_time);
-
-#if DEBUG_NPS_TIME
-  printf("%f,%f,%f,%f,%f,%f,", nps_main.host_time_factor, host_time_elapsed, host_time_now, nps_main.scaled_initial_time,
-         nps_main.sim_time, nps_main.display_time);
-#endif
-
-  int cnt = 0;
-  static int prev_cnt = 0;
-  static int grow_cnt = 0;
-  while (nps_main.sim_time <= host_time_elapsed) {
-    nps_main_run_sim_step();
-    nps_main.sim_time += SIM_DT;
-    if (nps_main.display_time < (host_time_now - nps_main.real_initial_time)) {
-      nps_main_display();
-      nps_main.display_time += DISPLAY_DT;
-    }
-    cnt++;
-  }
-
-  /* Check to make sure the simulation doesn't get too far behind real time looping */
-  if (cnt > (prev_cnt)) {grow_cnt++;}
-  else { grow_cnt--;}
-  if (grow_cnt < 0) {grow_cnt = 0;}
-  prev_cnt = cnt;
-
-  if (grow_cnt > 10) {
-    printf("Warning: The time factor is too large for efficient operation! Please reduce the time factor.\n");
-  }
-
-#if DEBUG_NPS_TIME
-  printf("%f,%f\n", nps_main.sim_time, nps_main.display_time);
-#endif
-
-  return TRUE;
-
-}
 
 
 static bool_t nps_main_parse_options(int argc, char **argv)

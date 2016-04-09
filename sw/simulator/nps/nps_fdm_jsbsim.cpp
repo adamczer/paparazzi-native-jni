@@ -175,6 +175,8 @@ void nps_fdm_init(double dt)
 
   init_ltp();
 
+  printf("nps_fdm_init is called ...");
+
 #if DEBUG_NPS_JSBSIM
   printf("fdm.time,fdm.body_ecef_accel.x,fdm.body_ecef_accel.y,fdm.body_ecef_accel.z,fdm.ltp_ecef_accel.x,fdm.ltp_ecef_accel.y,fdm.ltp_ecef_accel.z,fdm.ecef_ecef_accel.x,fdm.ecef_ecef_accel.y,fdm.ecef_ecef_accel.z,fdm.ltpprz_ecef_accel.z,fdm.ltpprz_ecef_accel.y,fdm.ltpprz_ecef_accel.z,fdm.agl\n");
 #endif
@@ -598,7 +600,7 @@ static void init_jsbsim(double dt)
 
 /**
  * Initialize the ltp from the JSBSim location.
- *
+ * LTP: Localtion Tangent Plane
  */
 static void init_ltp(void)
 {

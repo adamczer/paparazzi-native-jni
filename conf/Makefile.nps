@@ -34,6 +34,7 @@ DEBUG_FLAGS ?= -ggdb3
 Q=@
 
 CFLAGS  = -W -Wall
+CFLAGS += -fpic
 CFLAGS += $(INCLUDES)
 CFLAGS += $($(TARGET).CFLAGS)
 CFLAGS += $(USER_CFLAGS)
@@ -43,6 +44,7 @@ CFLAGS += -std=gnu99
 CFLAGS += $(shell pkg-config --cflags-only-I ivy-glib)
 
 CXXFLAGS  = -W -Wall
+CXXFLAGS += -fpic
 CXXFLAGS += $(INCLUDES)
 CXXFLAGS += $($(TARGET).CFLAGS)
 CXXFLAGS += $(USER_CFLAGS)
@@ -61,7 +63,7 @@ $(TARGET).objso	= $($(TARGET).srcs:%.c=$(OBJDIR)/%.o)
 $(TARGET).objsoxx = $($(TARGET).objso:%.cpp=$(OBJDIR)/%.o)
 $(TARGET).objs	= $($(TARGET).objsoxx:%.S=$(OBJDIR)/%.o)
 
-all compile: check_jsbsim $(OBJDIR)/simsitl
+all compile: check_jsbsim $(OBJDIR)/simsitl $(OBJDIR)/libpprz.so
 
 
 check_jsbsim:
@@ -72,6 +74,9 @@ $(OBJDIR)/simsitl : $($(TARGET).objs)
 	@echo LD $@
 	$(Q)$(CXX) $(CXXFLAGS) -o $@ $($(TARGET).objs) $(LDFLAGS)
 
+$(OBJDIR)/libpprz.so : $($(TARGET).objs)
+	@echo LD $@
+	$(Q)$(CXX) $(CXXFLAGS) -shared -Wl,-soname,libpprz.so -o $@ $($(TARGET).objs) $(LDFLAGS)
 
 %.s: %.c
 	$(CC) $(CFLAGS) -S -o $@ $<
