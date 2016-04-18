@@ -295,10 +295,11 @@ static gboolean nps_main_periodic(gpointer data __attribute__((unused)))
  *
  * returned double is the time of the simulation that is needed for the sections down stream
  */
-double nps_main_periodic_juav_native()
+static double host_time_now_juav = 0;
+static double host_time_elapsed_juav = 0;
+void nps_main_periodic_juav_native()
 {
   struct timeval tv_now;
-  double  host_time_now;
 
   if (pauseSignal) {
     char line[128];
@@ -332,11 +333,15 @@ double nps_main_periodic_juav_native()
   }
 
   gettimeofday(&tv_now, NULL);
-  host_time_now = time_to_double(&tv_now);
-  double host_time_elapsed = nps_main.host_time_factor * (host_time_now  - nps_main.scaled_initial_time);
+  host_time_now_juav = time_to_double(&tv_now);
+  host_time_elapsed_juav = nps_main.host_time_factor * (host_time_now_juav  - nps_main.scaled_initial_time);
+  printf("%s%d\n","nps_main.host_time_factor=",nps_main.host_time_factor);
+  printf("%s%d\n","nps_main.scaled_initial_time=",nps_main.scaled_initial_time);
+  printf("%s%d\n","host_time_now_juav=",host_time_now_juav);
+  printf("%s%d\n","host_time_elapsed_juav=",host_time_elapsed_juav);
 
 #if DEBUG_NPS_TIME
-  printf("%f,%f,%f,%f,%f,%f,", nps_main.host_time_factor, host_time_elapsed, host_time_now, nps_main.scaled_initial_time,
+  printf("%f,%f,%f,%f,%f,%f,", nps_main.host_time_factor, host_time_elapsed_juav, host_time_now_juav, nps_main.scaled_initial_time,
          nps_main.sim_time, nps_main.display_time);
 #endif
 //TODO must be in java for incremental integration vv
@@ -368,9 +373,14 @@ double nps_main_periodic_juav_native()
 //  printf("%f,%f\n", nps_main.sim_time, nps_main.display_time);
 //#endif
 
-  return nps_main.sim_time; // this is required for the system steps
+//  return nps_main.sim_time; // this is required for the system steps
 }
 
+
+
+double get_nps_main_real_initial_time_juav() {
+  return nps_main.real_initial_time;
+}
 
 void nps_main_init_juav() {
   nps_main_init();
@@ -415,7 +425,9 @@ static void nps_main_init(void)
 
 }
 
-
+void nps_main_run_sim_step_juav() {
+  nps_main_run_sim_step();
+}
 
 static void nps_main_run_sim_step(void)
 {
@@ -431,6 +443,38 @@ static void nps_main_run_sim_step(void)
 
   nps_autopilot_run_step(nps_main.sim_time);
 
+}
+
+void nps_fdm_run_step_juav() {
+  nps_fdm_run_step(autopilot.launch, autopilot.commands, NPS_COMMANDS_NB);
+}
+
+void nps_main_display_juav() {
+  nps_main_display();
+}
+
+void set_nps_sim_time_juav(double d) {
+  nps_main.sim_time=d;
+}
+
+double get_nps_sim_time_juav() {
+  return nps_main.sim_time;
+}
+
+double get_nps_host_time_elapsed_juav() {
+  return host_time_elapsed_juav;
+}
+
+double get_nps_host_time_now_juav() {
+  return host_time_now_juav;
+}
+
+double get_nps_display_time_juav() {
+  return nps_main.display_time;
+}
+
+void set_nps_display_time_juav(double d) {
+  nps_main.display_time = d;
 }
 
 
@@ -476,7 +520,17 @@ void nps_set_time_factor(float time_factor)
 }
 
 
-
+void nps_main_parse_options_juav() {
+  nps_main.fg_host = NULL;
+  nps_main.fg_port = 5501;
+  nps_main.fg_time_offset = 0;
+  nps_main.js_dev = NULL;
+  nps_main.spektrum_dev = NULL;
+  nps_main.rc_script = 0;
+  nps_main.ivy_bus = NULL;
+  nps_main.host_time_factor = 1.0;
+  nps_main.fg_fdm = 0;
+}
 
 static bool_t nps_main_parse_options(int argc, char **argv)
 {
