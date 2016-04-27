@@ -48,6 +48,7 @@ def main():
                      help="Host for FlightGear visualization (e.g. 127.0.0.1)")
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="verbose")
+    parser.add_option("--java", dest="is_java", action="store", default=None)
 
     # special options for the fixedwing OCaml sim
     ocamlsim_opts = OptionGroup(parser, "Simple fixedwing OCaml Simulator Options",
@@ -170,7 +171,10 @@ def main():
         print("Launching "+options.simtype+" simulator with arguments: "+' '.join(simargs))
 
     # start the simulator, replacing this process
-    os.execv(simsitl, [simsitl] + simargs)
+    if options.is_java == "yes":
+        os.execv("/home/gassa/Research/juav/exec_command.sh",  ["/home/gassa/Research/juav/exec_command.sh"]+simargs)
+    else:
+        os.execv(simsitl, [simsitl] + simargs)
 
 if __name__ == "__main__":
     main()

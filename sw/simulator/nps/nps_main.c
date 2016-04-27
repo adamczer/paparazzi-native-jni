@@ -310,7 +310,7 @@ void nps_main_periodic_juav_native()
     t1 = time_to_double(&tv_now);
     /* unscale to initial real time*/
     irt = t1 - (t1 - nps_main.scaled_initial_time) * nps_main.host_time_factor;
-
+    //FIXME: why do we need to input this?? hard code or it can be taken from command line, right???
     printf("Press <enter> to continue (or CTRL-Z to suspend).\nEnter a new time factor if needed (current: %f): ",
            nps_main.host_time_factor);
     fflush(stdout);
@@ -335,10 +335,10 @@ void nps_main_periodic_juav_native()
   gettimeofday(&tv_now, NULL);
   host_time_now_juav = time_to_double(&tv_now);
   host_time_elapsed_juav = nps_main.host_time_factor * (host_time_now_juav  - nps_main.scaled_initial_time);
-  printf("%s%d\n","nps_main.host_time_factor=",nps_main.host_time_factor);
-  printf("%s%d\n","nps_main.scaled_initial_time=",nps_main.scaled_initial_time);
-  printf("%s%d\n","host_time_now_juav=",host_time_now_juav);
-  printf("%s%d\n","host_time_elapsed_juav=",host_time_elapsed_juav);
+  //printf("%s%d\n","nps_main.host_time_factor=",nps_main.host_time_factor);
+  //printf("%s%d\n","nps_main.scaled_initial_time=",nps_main.scaled_initial_time);
+  //printf("%s%d\n","host_time_now_juav=",host_time_now_juav);
+  //printf("%s%d\n","host_time_elapsed_juav=",host_time_elapsed_juav);
 
 #if DEBUG_NPS_TIME
   printf("%f,%f,%f,%f,%f,%f,", nps_main.host_time_factor, host_time_elapsed_juav, host_time_now_juav, nps_main.scaled_initial_time,
@@ -400,7 +400,7 @@ static void nps_main_init(void)
   nps_fdm_init(SIM_DT);
   nps_atmosphere_init();
   nps_sensors_init(nps_main.sim_time);
-  printf("Simulating with dt of %f\n", SIM_DT);
+  //printf("Simulating with dt of %f\n", SIM_DT);
 
   enum NpsRadioControlType rc_type;
   char *rc_dev = NULL;
