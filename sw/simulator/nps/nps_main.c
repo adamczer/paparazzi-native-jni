@@ -625,3 +625,79 @@ static bool_t nps_main_parse_options(int argc, char **argv)
   }
   return TRUE;
 }
+// sensor values pull juav
+// FdmBodyInertialRotVel
+double get_fdm_body_inetrial_rot_vel_p_juav() {
+  return fdm.body_inertial_rotvel.p;
+}
+double get_fdm_body_inetrial_rot_vel_q_juav() {
+  return fdm.body_inertial_rotvel.q;
+}
+double get_fdm_body_inetrial_rot_vel_r_juav() {
+  return fdm.body_inertial_rotvel.r;
+}
+// FdmBodyAccel
+double get_fdm_body_accel_x_juav() {
+  return fdm.body_accel.x;
+}
+double get_fdm_body_accel_y_juav() {
+  return fdm.body_accel.y;
+}
+double get_fdm_body_accel_z_juav() {
+  return fdm.body_accel.z;
+}
+//FdmBodyToImu
+double get_fdm_body_to_imu_juav(int row, int col) {
+  return sensors.body_to_imu_rmat.m[row*3+col];
+}
+//FDM Ltp To Body Quat;
+double get_fdm_ltp_to_body_quat_qi_juav() {
+  return fdm.ltp_to_body_quat.qi;
+}
+double get_fdm_ltp_to_body_quat_qx_juav(){
+  return fdm.ltp_to_body_quat.qx;
+}
+double get_fdm_ltp_to_body_quat_qy_juav(){
+  return fdm.ltp_to_body_quat.qy;
+}
+double get_fdm_ltp_to_body_quat_qz_juav(){
+  return fdm.ltp_to_body_quat.qz;
+}
+//FDM Ltp H
+double get_fdm_ltp_h_x_juav() {
+  return fdm.ltp_h.x;
+}
+double get_fdm_ltp_h_y_juav(){
+  return fdm.ltp_h.y;
+}
+double get_fdm_ltp_h_z_juav(){
+  return fdm.ltp_h.z;
+}
+//FDM hmsl
+double get_fdm_hmsl_juav(){
+  return fdm.hmsl;
+}
+//Fdm Ecef Ecef Vel
+double get_fdm_ecef_ecef_vel_x_juav(){
+  return fdm.ecef_ecef_vel.x;
+}
+double get_fdm_ecef_ecef_vel_y_juav(){
+  return fdm.ecef_ecef_vel.y;
+}
+double get_fdm_ecef_ecef_vel_z_juav(){
+  return fdm.ecef_ecef_vel.z;
+}
+//Fdm Ecef Pos
+double get_fdm_ecef_pos_x_juav(){
+  return fdm.ecef_pos.x;
+}
+double get_fdm_ecef_pos_y_juav(){
+  return fdm.ecef_pos.y;
+}
+double get_fdm_ecef_pos_z_juav(){
+  return fdm.ecef_pos.z;
+}
+double get_fdm_agl_juav() {
+  return fdm.agl;
+}
+
