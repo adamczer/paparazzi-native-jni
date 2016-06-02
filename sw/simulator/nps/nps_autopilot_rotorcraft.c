@@ -208,3 +208,11 @@ void convert_motor_mixing_commands_to_autopilot_commands() {
     autopilot.commands[i] = (double)motor_mixing.commands[i] / MAX_PPRZ;
   }
 }
+
+void nps_electrical_run_step_juav(double time) {
+  nps_electrical_run_step(time);
+}
+
+void nps_send_baro_reading_juav(float pressure) {
+  AbiSendMsgBARO_ABS(BARO_SIM_SENDER_ID, pressure);
+}

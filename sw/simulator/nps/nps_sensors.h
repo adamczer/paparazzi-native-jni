@@ -31,4 +31,10 @@ extern bool_t nps_sensors_gps_available();
 extern bool_t nps_sensors_sonar_available();
 
 
+void UpdateSensorLatencySpeedJuav(double time, double cur_speed_reading_x, double cur_speed_reading_y, double cur_speed_reading_z);
+void UpdateSensorLatencyPosJuav(double time, double pos_reading_x, double pos_reading_y, double pos_reading_z);
+void UpdateSensorLatencyLlaJuav(double time, double lat, double lon, double alt);
+void UpdateSensorLatency_Single_Hmsl(double time, double cur_hmsl_reading);
+
+
 #endif /* NPS_SENSORS_H */

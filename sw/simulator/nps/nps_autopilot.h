@@ -43,7 +43,9 @@ void nps_autopilot_run_step_radio_juav(double time);
 void sim_overwrite_ahrs_juav();
 void sim_overwrite_ins_juav();
 void handle_periodic_tasks_juav();
+void nps_electrical_run_step_juav(double time);
 void convert_motor_mixing_commands_to_autopilot_commands();
+void nps_send_baro_reading_juav(float pressure);
 
 
 #endif /* NPS_AUTOPILOT_H */

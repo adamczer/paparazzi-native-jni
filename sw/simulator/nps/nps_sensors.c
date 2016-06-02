@@ -76,3 +76,36 @@ bool_t nps_sensors_sonar_available(void)
   }
   return FALSE;
 }
+
+void UpdateSensorLatencySpeedJuav(double time, double cur_speed_reading_x, double cur_speed_reading_y, double cur_speed_reading_z) {
+  struct DoubleVect3 cur_speed_reading;
+  cur_speed_reading.x=cur_speed_reading_x;
+  cur_speed_reading.y=cur_speed_reading_y;
+  cur_speed_reading.z=cur_speed_reading_z;
+  struct NpsSensorGps *gps = &sensors.gps;
+  UpdateSensorLatency(time, &cur_speed_reading, &gps->speed_history, gps->speed_latency, &gps->ecef_vel);
+}
+
+
+void UpdateSensorLatencyPosJuav(double time, double pos_reading_x, double pos_reading_y, double pos_reading_z) {
+  struct DoubleVect3 pos_reading;
+  pos_reading.x=pos_reading_x;
+  pos_reading.y=pos_reading_y;
+  pos_reading.z=pos_reading_z;
+  struct NpsSensorGps *gps = &sensors.gps;
+  UpdateSensorLatency(time, &pos_reading, &gps->pos_history, gps->pos_latency, &gps->ecef_pos);
+}
+
+void UpdateSensorLatencyLlaJuav(double time, double lat, double lon, double alt) {
+  struct LlaCoor_d cur_lla_reading;
+  cur_lla_reading.lat=lat;
+  cur_lla_reading.lon=lon;
+  cur_lla_reading.alt=alt;
+  struct NpsSensorGps *gps = &sensors.gps;
+  UpdateSensorLatency(time, &cur_lla_reading, &gps->lla_history, gps->pos_latency, &gps->lla_pos);
+}
+
+void UpdateSensorLatency_Single_Hmsl(double time, double cur_hmsl_reading) {
+  struct NpsSensorGps *gps = &sensors.gps;
+  UpdateSensorLatency_Single(time, &cur_hmsl_reading, &gps->hmsl_history, gps->pos_latency, &gps->hmsl);
+}
