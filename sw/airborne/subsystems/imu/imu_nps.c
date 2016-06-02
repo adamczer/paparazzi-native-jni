@@ -53,11 +53,31 @@ void imu_feed_gyro_accel(void)
 
 }
 
+void imu_feed_gyro_juav(double gyro_x, double gyro_y, double gyro_z)
+{
+  RATES_ASSIGN(imu.gyro_unscaled, gyro_x, gyro_y, gyro_z);
+  imu_nps.gyro_available = TRUE;
+}
+
+void imu_feed_accel_juav(double accel_x, double accel_y, double accel_z) {
+  VECT3_ASSIGN(imu.accel_unscaled, accel_x, accel_y, accel_z);
+  // set availability flags...
+  imu_nps.accel_available = TRUE;
+}
+
 
 void imu_feed_mag(void)
 {
 
   VECT3_ASSIGN(imu.mag_unscaled, sensors.mag.value.x, sensors.mag.value.y, sensors.mag.value.z);
+  imu_nps.mag_available = TRUE;
+
+}
+
+void imu_feed_mag_juav(double mag_x, double mag_y, double mag_z)
+{
+
+  VECT3_ASSIGN(imu.mag_unscaled, mag_x, mag_y, mag_z);
   imu_nps.mag_available = TRUE;
 
 }

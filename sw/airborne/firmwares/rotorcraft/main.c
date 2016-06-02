@@ -393,3 +393,7 @@ STATIC_INLINE void main_event(void)
 
   modules_event_task();
 }
+
+void main_event_juav() {
+  main_event();
+}

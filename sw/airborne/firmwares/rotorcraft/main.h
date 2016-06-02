@@ -42,5 +42,7 @@ STATIC_INLINE void main_periodic(void);
 STATIC_INLINE void telemetry_periodic(void);
 STATIC_INLINE void failsafe_check(void);
 
+void main_event_juav();
+
 
 #endif /* MAIN_H */

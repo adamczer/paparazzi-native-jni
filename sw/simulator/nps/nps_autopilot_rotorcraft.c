@@ -174,3 +174,37 @@ void sim_overwrite_ins(void)
   stateSetAccelNed_f(&ltp_accel);
 
 }
+
+void nps_autopilot_run_step_radio_juav(double time) {
+#if RADIO_CONTROL && !RADIO_CONTROL_TYPE_DATALINK
+  if (nps_radio_control_available(time)) {
+    radio_control_feed();
+    main_event();
+  }
+#endif
+}
+
+
+void sim_overwrite_ahrs_juav() {
+  if (nps_bypass_ahrs) {
+    sim_overwrite_ahrs();
+  }
+
+}
+void sim_overwrite_ins_juav() {
+  if (nps_bypass_ins) {
+    sim_overwrite_ins();
+  }
+}
+
+
+void handle_periodic_tasks_juav() {
+  handle_periodic_tasks();
+}
+
+void convert_motor_mixing_commands_to_autopilot_commands() {
+  /* scale final motor commands to 0-1 for feeding the fdm */
+  for (uint8_t i = 0; i < NPS_COMMANDS_NB; i++) {
+    autopilot.commands[i] = (double)motor_mixing.commands[i] / MAX_PPRZ;
+  }
+}

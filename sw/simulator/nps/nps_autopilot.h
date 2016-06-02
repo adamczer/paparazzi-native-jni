@@ -39,6 +39,11 @@ extern void sim_overwrite_ins(void);
 extern void nps_autopilot_init(enum NpsRadioControlType type, int num_script, char *js_dev);
 extern void nps_autopilot_run_step(double time);
 extern void nps_autopilot_run_systime_step(void);
+void nps_autopilot_run_step_radio_juav(double time);
+void sim_overwrite_ahrs_juav();
+void sim_overwrite_ins_juav();
+void handle_periodic_tasks_juav();
+void convert_motor_mixing_commands_to_autopilot_commands();
 
 
 #endif /* NPS_AUTOPILOT_H */

@@ -82,6 +82,10 @@ extern void imu_feed_mag(void);
 
 extern void imu_nps_event(void);
 
+void imu_feed_mag_juav(double mag_x, double mag_y, double mag_z);
+void imu_feed_accel_juav(double accel_x, double accel_y, double accel_z);
+void imu_feed_gyro_juav(double gyro_x, double gyro_y, double gyro_z);
+
 #define ImuEvent imu_nps_event
 
 #endif /* IMU_NPS_H */
