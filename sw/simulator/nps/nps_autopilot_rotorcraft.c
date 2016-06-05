@@ -216,3 +216,39 @@ void nps_electrical_run_step_juav(double time) {
 void nps_send_baro_reading_juav(float pressure) {
   AbiSendMsgBARO_ABS(BARO_SIM_SENDER_ID, pressure);
 }
+
+void npsGyroFeedStepJuav() {
+  if (nps_sensors_gyro_available()) {
+    imu_feed_gyro_juav(sensors.gyro.value.x, sensors.gyro.value.y, sensors.gyro.value.z);
+    main_event();
+  }
+}
+
+void npsAccelFeedStepJuav() {
+  if (nps_sensors_gyro_available()) {
+    imu_feed_accel_juav(sensors.accel.value.x, sensors.accel.value.y, sensors.accel.value.z);
+    main_event();
+  }
+}
+
+void npsMagFeedStepJuav() {
+  if (nps_sensors_mag_available()) {
+    imu_feed_mag();
+    main_event();
+  }
+}
+
+void npsGpsFeedStepJuav() {
+  if (nps_sensors_gps_available()) {
+    gps_feed_value();
+    main_event();
+  }
+}
+
+void npsBaroFeedStepJuav() {
+  if (nps_sensors_baro_available()) {
+    float pressure = (float) sensors.baro.value;
+    AbiSendMsgBARO_ABS(BARO_SIM_SENDER_ID, pressure);
+    main_event();
+  }
+}

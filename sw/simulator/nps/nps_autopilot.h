@@ -47,6 +47,12 @@ void nps_electrical_run_step_juav(double time);
 void convert_motor_mixing_commands_to_autopilot_commands();
 void nps_send_baro_reading_juav(float pressure);
 
+void npsGyroFeedStepJuav();
+void npsAccelFeedStepJuav();
+void npsMagFeedStepJuav();
+void npsGpsFeedStepJuav();
+void npsBaroFeedStepJuav();
+
 
 #endif /* NPS_AUTOPILOT_H */
 

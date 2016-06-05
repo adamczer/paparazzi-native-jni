@@ -93,4 +93,15 @@ void nps_sensor_gps_run_step(struct NpsSensorGps *gps, double time)
   gps->next_update += NPS_GPS_DT;
   gps->data_available = TRUE;
 
+  printf("gps {\n last_msg_ticks = %d,\n last_msg_time = %f,\n ecef_pos = x=%f, y=%f,z=%f,\n ecef_vel = x=%f,y=%f,z=%f,\n lla_pos = x=%f,y=%f,z=%f,\n utm_pos = north=%f,east=%f,alt=%f,zone=%d\n}\n"
+          ,gps.last_msg_ticks
+          ,gps.last_msg_time
+          ,gps.ecef_pos.x,gps.ecef_pos.y,gps.ecef_pos.z
+          ,gps.ecef_vel.x,gps.ecef_vel.y,gps.ecef_vel.z
+          ,gps.lla_pos.lat,gps.lla_pos.lon,gps.lla_pos.alt
+          ,gps.utm_pos.north,gps.utm_pos.east,gps.utm_pos.alt,gps.utm_pos.zone);
+
+
+
+
 }
