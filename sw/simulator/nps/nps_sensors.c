@@ -29,71 +29,6 @@ void nps_sensors_run_step(double time)
   nps_sensor_baro_run_step(&sensors.baro, time);
   nps_sensor_gps_run_step(&sensors.gps, time);
   nps_sensor_sonar_run_step(&sensors.sonar, time);
-
-//  printf("body_to_imu_rmat = {%f,%f,%f,%f,%f,%f,%f,%f,%f}\n",
-//         sensors.body_to_imu_rmat.m[0],
-//         sensors.body_to_imu_rmat.m[1],
-//         sensors.body_to_imu_rmat.m[2],
-//         sensors.body_to_imu_rmat.m[3],
-//         sensors.body_to_imu_rmat.m[4],
-//         sensors.body_to_imu_rmat.m[5],
-//         sensors.body_to_imu_rmat.m[6],
-//         sensors.body_to_imu_rmat.m[7],
-//         sensors.body_to_imu_rmat.m[8]);
-
-//  printf("sensors.gyro = {\n"
-//                 "gyro.value = {x=%f,y=%f,z=%f}\n"
-//                 "gyro.min = %f\n"
-//                 "gyro.max = %f\n"
-//                 "gyro.bias_initial = {x=%f,y=%f,z=%f}\n"
-//                 "gyro.bias_random_walk_std_dev = {x=%f,y=%f,z=%f}\n"
-//                 "gyro.bias_random_walk_value = {x=%f,y=%f,z=%f}\n"
-//                 "gyro.neutral = {x=%f,y=%f,z=%f}\n"
-//                 "gyro.noise_std_dev = {x=%f,y=%f,z=%f}\n"
-//                 "gyro.data_available = %d\n"
-//                 "}",
-//         sensors.gyro.value.x,sensors.gyro.value.y,sensors.gyro.value.z,
-//         sensors.gyro.min,
-//         sensors.gyro.max,
-//         sensors.gyro.bias_initial.x,sensors.gyro.bias_initial.y,sensors.gyro.bias_initial.z,
-//         sensors.gyro.bias_random_walk_std_dev.x,sensors.gyro.bias_random_walk_std_dev.y,sensors.gyro.bias_random_walk_std_dev.z,
-//         sensors.gyro.bias_random_walk_value.x,sensors.gyro.bias_random_walk_value.y,sensors.gyro.bias_random_walk_value.z,
-//         sensors.gyro.neutral.x,sensors.gyro.neutral.y,sensors.gyro.neutral.z,
-//         sensors.gyro.noise_std_dev.x,sensors.gyro.noise_std_dev.y,sensors.gyro.noise_std_dev.z,
-//         sensors.accel.data_available
-//  );
-
-//  printf("sensors.accel = {x=%f,y=%f,z=%f \n}",
-//         sensors.accel.value.x,sensors.accel.value.y,sensors.accel.value.z
-//  );
-//
-//  printf("sensors.gyro = {x=%f,y=%f,z=%f} \n ",
-//         sensors.gyro.value.x,sensors.gyro.value.y,sensors.gyro.value.z
-//  );
-//
-//  printf("sensors.mag = {x=%f,y=%f,z=%f} \n",
-//         sensors.mag.value.x,sensors.mag.value.y,sensors.mag.value.z
-//  );
-//
-//  printf("sensors.gps.ecef_pos = {x=%f,y=%f,z=%f} \n",
-//         sensors.gps.ecef_pos.x,sensors.gps.ecef_pos.y,sensors.gps.ecef_pos.z
-//  );
-
-//  printf("sensors.accel = {\n"
-//                 "accel.value = {x=%f,y=%f,z=%f}\n"
-//                 "accel.min = %f\n"
-//                 "accel.max = %f\n"
-//                 "accel.bias = {x=%f,y=%f,z=%f}\n"
-//                 "accel.neutral = {x=%f,y=%f,z=%f}\n"
-//                 "accel.data_available = %d\n"
-//                 "}",
-//         sensors.accel.value.x,sensors.accel.value.y,sensors.accel.value.z,
-//         sensors.accel.min,
-//         sensors.accel.max,
-//         sensors.accel.bias.x,sensors.accel.bias.y,sensors.accel.bias.z,
-//         sensors.accel.neutral.x,sensors.accel.neutral.y,sensors.accel.neutral.z,
-//         sensors.accel.data_available
-//  );
 }
 
 
@@ -205,14 +140,6 @@ void nps_sensor_baro_run_step_juav(double time) {
 }
 void nps_sensor_gps_run_step_juav(double time) {
   nps_sensor_gps_run_step(&sensors.gps, time);
-//  printf("gps {\necef_pos {x=%f,y=%f,z=%f}\necef_vel {x=%f,y=%f,z=%f}\nlla_pos {lat=%f,lon=%f,alt=%f}\nspeed_latency=%f",
-//  sensors.gps.ecef_pos.x,sensors.gps.ecef_pos.y,sensors.gps.ecef_pos.z,
-//         sensors.gps.ecef_vel.x,sensors.gps.ecef_vel.y,sensors.gps.ecef_vel.z,
-//         sensors.gps.hmsl,
-//         sensors.gps.lla_pos.lat,sensors.gps.lla_pos.lon,sensors.gps.lla_pos.alt,
-//         sensors.gps.speed_latency
-//
-//  );
 }
 void nps_sensor_sonar_run_step_juav(double time) {
   nps_sensor_sonar_run_step(&sensors.sonar, time);
