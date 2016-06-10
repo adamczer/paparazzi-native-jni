@@ -149,6 +149,7 @@ void stabilization_attitude_init(void)
 
 void stabilization_attitude_enter(void)
 {
+//  printf("stabilization_attitude_enter\n");
 
   /* reset psi setpoint to current psi angle */
   stab_att_sp_euler.psi = stabilization_attitude_get_heading_i();
@@ -161,6 +162,7 @@ void stabilization_attitude_enter(void)
 
 void stabilization_attitude_set_failsafe_setpoint(void)
 {
+//  printf("stabilization_attitude_set_failsafe_setpoint\n");
   /* set failsafe to zero roll/pitch and current heading */
   int32_t heading2 = stabilization_attitude_get_heading_i() / 2;
   PPRZ_ITRIG_COS(stab_att_sp_quat.qi, heading2);
@@ -171,6 +173,7 @@ void stabilization_attitude_set_failsafe_setpoint(void)
 
 void stabilization_attitude_set_rpy_setpoint_i(struct Int32Eulers *rpy)
 {
+//  printf("stabilization_attitude_set_rpy_setpoint_i\n");
   // stab_att_sp_euler.psi still used in ref..
   stab_att_sp_euler = *rpy;
 
@@ -179,6 +182,7 @@ void stabilization_attitude_set_rpy_setpoint_i(struct Int32Eulers *rpy)
 
 void stabilization_attitude_set_earth_cmd_i(struct Int32Vect2 *cmd, int32_t heading)
 {
+//  printf("stabilization_attitude_set_earth_cmd_i\n");
   // stab_att_sp_euler.psi still used in ref..
   stab_att_sp_euler.psi = heading;
 
@@ -199,6 +203,7 @@ void stabilization_attitude_set_earth_cmd_i(struct Int32Vect2 *cmd, int32_t head
 
 static void attitude_run_ff(int32_t ff_commands[], struct Int32AttitudeGains *gains, struct Int32Rates *ref_accel)
 {
+//  printf("attitude_run_ff\n");
   /* Compute feedforward based on reference acceleration */
 
   ff_commands[COMMAND_ROLL]  = GAIN_PRESCALER_FF * gains->dd.x * RATE_FLOAT_OF_BFP(ref_accel->p) / (1 << 7);
@@ -209,6 +214,7 @@ static void attitude_run_ff(int32_t ff_commands[], struct Int32AttitudeGains *ga
 static void attitude_run_fb(int32_t fb_commands[], struct Int32AttitudeGains *gains, struct Int32Quat *att_err,
                             struct Int32Rates *rate_err, struct Int32Quat *sum_err)
 {
+//  printf("attitude_run_fb\n");
   /*  PID feedback */
   fb_commands[COMMAND_ROLL] =
     GAIN_PRESCALER_P * gains->p.x  * QUAT1_FLOAT_OF_BFP(att_err->qx) +
@@ -229,6 +235,7 @@ static void attitude_run_fb(int32_t fb_commands[], struct Int32AttitudeGains *ga
 
 void stabilization_attitude_run(bool_t enable_integrator)
 {
+//  printf("stabilization_attitude_run\n");
 
   /*
    * Update reference
@@ -293,6 +300,7 @@ void stabilization_attitude_run(bool_t enable_integrator)
 
 void stabilization_attitude_read_rc(bool_t in_flight, bool_t in_carefree, bool_t coordinated_turn)
 {
+//  printf("stabilization_attitude_read_rc\n");
   struct FloatQuat q_sp;
 #if USE_EARTH_BOUND_RC_SETPOINT
   stabilization_attitude_read_rc_setpoint_quat_earth_bound_f(&q_sp, in_flight, in_carefree, coordinated_turn);

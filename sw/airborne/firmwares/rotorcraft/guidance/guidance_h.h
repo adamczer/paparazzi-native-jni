@@ -152,4 +152,8 @@ static inline void guidance_h_SetTau(float tau)
   gh_set_tau(tau);
 }
 
+// used for drilling down to guidance_h.c stabilization_attitude_run(in_flight);
+bool run_stabilization_attitude_run_juav();
+void guidance_h_run_juav(bool  in_flight);
+
 #endif /* GUIDANCE_H_H */

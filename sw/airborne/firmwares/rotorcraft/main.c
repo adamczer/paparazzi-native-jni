@@ -278,6 +278,7 @@ STATIC_INLINE void main_periodic(void)
 #endif
 
   /* run control loops */
+  printf("autipilot periodic\n");
   autopilot_periodic();
   /* set actuators     */
   //actuators_set(autopilot_motors_on);
@@ -396,4 +397,80 @@ STATIC_INLINE void main_event(void)
 
 void main_event_juav() {
   main_event();
+}
+
+void main_periodic_juav_autopilot_prior()
+{
+
+#if USE_IMU
+  imu_periodic();
+#endif
+
+  //FIXME: temporary hack, remove me
+#ifdef InsPeriodic
+  InsPeriodic();
+#endif
+
+  /* run control loops */
+}
+
+void main_periodic_juav_autopilot_post() {
+  /* set actuators     */
+  //actuators_set(autopilot_motors_on);
+#ifndef INTER_MCU_AP
+  SetActuatorsFromCommands(commands, autopilot_mode);
+#else
+  intermcu_set_actuators(commands, autopilot_mode);
+#endif
+
+  if (autopilot_in_flight) {
+    RunOnceEvery(PERIODIC_FREQUENCY, autopilot_flight_time++);
+  }
+
+#if defined DATALINK || defined SITL
+  RunOnceEvery(PERIODIC_FREQUENCY, datalink_time++);
+#endif
+
+  RunOnceEvery(10, LED_PERIODIC());
+}
+
+void handle_periodic_tasks_following_main_periodic_juav()
+{
+  //Call sys_time_check_and_ack_timer_main_periodic_juav() to do check
+  //  if (sys_time_check_and_ack_timer(main_periodic_tid)) {
+//    main_periodic();
+//  }
+  if (sys_time_check_and_ack_timer(modules_tid)) {
+    modules_periodic_task();
+  }
+  if (sys_time_check_and_ack_timer(radio_control_tid)) {
+    radio_control_periodic_task();
+  }
+  if (sys_time_check_and_ack_timer(failsafe_tid)) {
+    failsafe_check();
+  }
+  if (sys_time_check_and_ack_timer(electrical_tid)) {
+    electrical_periodic();
+  }
+  if (sys_time_check_and_ack_timer(telemetry_tid)) {
+    telemetry_periodic();
+  }
+#if USE_BARO_BOARD
+  if (sys_time_check_and_ack_timer(baro_tid)) {
+    baro_periodic();
+  }
+#endif
+}
+
+bool sys_time_check_and_ack_timer_main_periodic_juav() {
+  return sys_time_check_and_ack_timer(main_periodic_tid);
+//  if (sys_time_check_and_ack_timer(main_periodic_tid)) {
+//    main_periodic();
+//  }
+}
+
+void main_periodic_juav_test() {
+    if (sys_time_check_and_ack_timer(main_periodic_tid)) {
+    main_periodic();
+  }
 }

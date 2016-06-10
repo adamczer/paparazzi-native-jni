@@ -243,6 +243,7 @@ void guidance_h_mode_changed(uint8_t new_mode)
           guidance_h.mode == GUIDANCE_H_MODE_RATE ||
           guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
 #endif
+//      printf("stabilization_attitude_enter guidance_h.c 246\n");
         stabilization_attitude_enter();
       break;
 
@@ -257,6 +258,7 @@ void guidance_h_mode_changed(uint8_t new_mode)
           guidance_h.mode == GUIDANCE_H_MODE_RATE ||
           guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
 #endif
+//          printf("stabilization_attitude_enter guidance_h.c 261\n");
         stabilization_attitude_enter();
       break;
 
@@ -274,6 +276,7 @@ void guidance_h_mode_changed(uint8_t new_mode)
           guidance_h.mode == GUIDANCE_H_MODE_RATE ||
           guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
 #endif
+//          printf("stabilization_attitude_enter guidance_h.c 279\n");
         stabilization_attitude_enter();
       break;
 
@@ -362,6 +365,7 @@ void guidance_h_run(bool_t  in_flight)
       }
     case GUIDANCE_H_MODE_CARE_FREE:
     case GUIDANCE_H_MODE_ATTITUDE:
+//      printf("stabilization_attitude_run guidance_h.c 365\n");
       stabilization_attitude_run(in_flight);
       break;
 
@@ -386,6 +390,7 @@ void guidance_h_run(bool_t  in_flight)
       /* set final attitude setpoint */
       stabilization_attitude_set_earth_cmd_i(&guidance_h_cmd_earth, guidance_h.sp.heading);
 #endif
+//          printf("stabilization_attitude_run guidance_h.c 390\n");
       stabilization_attitude_run(in_flight);
       break;
 
@@ -418,6 +423,7 @@ void guidance_h_run(bool_t  in_flight)
                                                guidance_h.sp.heading);
 #endif
       }
+//      printf("stabilization_attitude_run guidance_h.c 422\n");
       stabilization_attitude_run(in_flight);
       break;
 
@@ -636,4 +642,107 @@ bool_t guidance_h_set_guided_heading(float heading)
     return TRUE;
   }
   return FALSE;
+}
+
+bool run_stabilization_attitude_run_juav() {
+  //need to run for cases
+//  1) GUIDANCE_H_MODE_ATTITUDE(2)
+//  2) GUIDANCE_H_MODE_GUIDED(10)
+//  3) GUIDANCE_H_MODE_NAV(4)
+  return guidance_h.mode==GUIDANCE_H_MODE_ATTITUDE||guidance_h.mode==GUIDANCE_H_MODE_GUIDED||guidance_h.mode==GUIDANCE_H_MODE_NAV;
+}
+
+void guidance_h_run_juav(bool in_flight)
+{
+  switch (guidance_h.mode) {
+
+    case GUIDANCE_H_MODE_RC_DIRECT:
+      stabilization_none_run(in_flight);
+          break;
+
+    case GUIDANCE_H_MODE_RATE:
+      stabilization_rate_run(in_flight);
+          break;
+
+    case GUIDANCE_H_MODE_FORWARD:
+      if (transition_percentage < (100 << INT32_PERCENTAGE_FRAC)) {
+        transition_run();
+      }
+    case GUIDANCE_H_MODE_CARE_FREE:
+    case GUIDANCE_H_MODE_ATTITUDE:
+//      printf("stabilization_attitude_run guidance_h.c 365\n");
+//      stabilization_attitude_run(in_flight);
+          break;
+
+    case GUIDANCE_H_MODE_HOVER:
+      /* set psi command from RC */
+      guidance_h.sp.heading = guidance_h.rc_sp.psi;
+          /* fall trough to GUIDED to update ref, run traj and set final attitude setpoint */
+
+    case GUIDANCE_H_MODE_GUIDED:
+      /* guidance_h.sp.pos and guidance_h.sp.heading need to be set from external source */
+      if (!in_flight) {
+        guidance_h_hover_enter();
+      }
+
+          guidance_h_update_reference();
+
+#if GUIDANCE_INDI
+          guidance_indi_run(in_flight, guidance_h.sp.heading);
+#else
+          /* compute x,y earth commands */
+          guidance_h_traj_run(in_flight);
+          /* set final attitude setpoint */
+          stabilization_attitude_set_earth_cmd_i(&guidance_h_cmd_earth, guidance_h.sp.heading);
+#endif
+//          printf("stabilization_attitude_run guidance_h.c 390\n");
+//          stabilization_attitude_run(in_flight);
+          break;
+
+    case GUIDANCE_H_MODE_NAV:
+      if (!in_flight) {
+        guidance_h_nav_enter();
+      }
+
+          if (horizontal_mode == HORIZONTAL_MODE_ATTITUDE) {
+            struct Int32Eulers sp_cmd_i;
+            sp_cmd_i.phi = nav_roll;
+            sp_cmd_i.theta = nav_pitch;
+            sp_cmd_i.psi = nav_heading;
+            stabilization_attitude_set_rpy_setpoint_i(&sp_cmd_i);
+          } else {
+            INT32_VECT2_NED_OF_ENU(guidance_h.sp.pos, navigation_carrot);
+
+            guidance_h_update_reference();
+
+            /* set psi command */
+            guidance_h.sp.heading = nav_heading;
+            INT32_ANGLE_NORMALIZE(guidance_h.sp.heading);
+#if GUIDANCE_INDI
+            guidance_indi_run(in_flight, guidance_h.sp.heading);
+#else
+            /* compute x,y earth commands */
+            guidance_h_traj_run(in_flight);
+            /* set final attitude setpoint */
+            stabilization_attitude_set_earth_cmd_i(&guidance_h_cmd_earth,
+                                                   guidance_h.sp.heading);
+#endif
+          }
+//      printf("stabilization_attitude_run guidance_h.c 422\n");
+//          stabilization_attitude_run(in_flight);
+          break;
+
+#if GUIDANCE_H_MODE_MODULE_SETTING == GUIDANCE_H_MODE_MODULE
+    case GUIDANCE_H_MODE_MODULE:
+      guidance_h_module_run(in_flight);
+          break;
+#endif
+
+    case GUIDANCE_H_MODE_FLIP:
+      guidance_flip_run();
+          break;
+
+    default:
+      break;
+  }
 }

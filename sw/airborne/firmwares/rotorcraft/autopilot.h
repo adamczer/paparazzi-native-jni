@@ -210,6 +210,14 @@ extern bool_t autopilot_guided_goto_ned_relative(float dx, float dy, float dz, f
  */
 extern bool_t autopilot_guided_goto_body_relative(float dx, float dy, float dz, float dyaw);
 
+void autopilot_periodic_prior_juav();
+bool is_autopilot_mode_ap_mode_kill_juav();//false stablilization needed -> run java code replacing guidance_h_run(autopilot_in_flight);
+void autopilot_periodic_post_juav();
+bool get_autopilot_in_flight_juav(); // needed for guidance code
+
+// test all native
+void guidance_h_run_native_test_juav(bool in_flight);
+
 
 
 #endif /* AUTOPILOT_H */

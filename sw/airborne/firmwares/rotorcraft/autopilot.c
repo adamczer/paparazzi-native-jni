@@ -700,3 +700,81 @@ void autopilot_on_rc_frame(void)
   }
 
 }
+
+void autopilot_periodic_prior_juav()
+{
+
+    RunOnceEvery(NAV_PRESCALER, compute_dist2_to_home());
+
+    if (autopilot_in_flight && autopilot_mode == AP_MODE_NAV) {
+        if (too_far_from_home) {
+            if (dist2_to_home > failsafe_mode_dist2) {
+                autopilot_set_mode(FAILSAFE_MODE_TOO_FAR_FROM_HOME);
+            } else {
+                autopilot_set_mode(AP_MODE_HOME);
+            }
+        }
+    }
+
+    if (autopilot_mode == AP_MODE_HOME) {
+        RunOnceEvery(NAV_PRESCALER, nav_home());
+    } else {
+        // otherwise always call nav_periodic_task so that carrot is always updated in GCS for other modes
+        RunOnceEvery(NAV_PRESCALER, nav_periodic_task());
+    }
+
+
+    /* If in FAILSAFE mode and either already not in_flight anymore
+     * or just "detected" ground, go to KILL mode.
+     */
+    if (autopilot_mode == AP_MODE_FAILSAFE) {
+        if (!autopilot_in_flight) {
+            autopilot_set_mode(AP_MODE_KILL);
+        }
+
+#if FAILSAFE_GROUND_DETECT
+        INFO("Using FAILSAFE_GROUND_DETECT: KILL")
+    if (autopilot_ground_detected) {
+      autopilot_set_mode(AP_MODE_KILL);
+    }
+#endif
+    }
+
+    /* Reset ground detection _after_ running flight plan
+     */
+    if (!autopilot_in_flight) {
+        autopilot_ground_detected = FALSE;
+        autopilot_detect_ground_once = FALSE;
+    }
+
+   /* Set fixed "failsafe" commands from airframe file if in KILL mode.
+   * If in FAILSAFE mode, run normal loops with failsafe attitude and
+   * downwards velocity setpoints.
+   */
+    if (autopilot_mode == AP_MODE_KILL) {
+        SetCommands(commands_failsafe);
+    } else {
+        guidance_v_run(autopilot_in_flight);
+//        guidance_h_run(autopilot_in_flight); //this done in java
+//        SetRotorcraftCommands(stabilization_cmd, autopilot_in_flight, autopilot_motors_on); //must be called after java autopilot_periodic_post_juav()
+    }
+}
+
+bool is_autopilot_mode_ap_mode_kill_juav() {
+    return autopilot_mode == AP_MODE_KILL;
+}
+
+void autopilot_periodic_post_juav()
+{
+    if (autopilot_mode != AP_MODE_KILL)
+        SetRotorcraftCommands(stabilization_cmd, autopilot_in_flight, autopilot_motors_on);
+}
+
+bool get_autopilot_in_flight_juav() {
+    return autopilot_in_flight;
+}
+
+//test plumbing
+void guidance_h_run_native_test_juav(bool in_flight) {
+    guidance_h_run(in_flight); //this done in java
+}

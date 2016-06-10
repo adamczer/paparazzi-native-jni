@@ -76,7 +76,9 @@ void guidance_flip_run(void)
       flip_cmd_earth.x = 0;
       flip_cmd_earth.y = 0;
       stabilization_attitude_set_earth_cmd_i(&flip_cmd_earth,
+
                                              heading_save);
+          printf("stabilization_attitude_run guidance_flip.c 81\n");
       stabilization_attitude_run(autopilot_in_flight);
       stabilization_cmd[COMMAND_THRUST] = 8000; //Thrust to go up first
       timer_save = 0;
@@ -114,6 +116,7 @@ void guidance_flip_run(void)
       flip_cmd_earth.y = 0;
       stabilization_attitude_set_earth_cmd_i(&flip_cmd_earth,
                                              heading_save);
+      printf("stabilization_attitude_run guidance_flip.c 117\n");
       stabilization_attitude_run(autopilot_in_flight);
 
       stabilization_cmd[COMMAND_THRUST] = FINAL_THRUST_LEVEL; //Thrust to stop falling
