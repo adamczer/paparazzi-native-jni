@@ -53,4 +53,68 @@ extern struct AttRefQuatInt att_ref_quat_i;
     attitude_ref_quat_int_set_zeta_r(&att_ref_quat_i, _val);    \
   }
 
+void attitude_ref_quat_int_update_juav(float dt);
+
+int get_stabilization_att_sum_err_quat_i_juav();
+int get_stabilization_att_sum_err_quat_x_juav();
+int get_stabilization_att_sum_err_quat_y_juav();
+int get_stabilization_att_sum_err_quat_z_juav();
+
+void set_stabilization_att_sum_err_quat_i_juav(int qi);
+void set_stabilization_att_sum_err_quat_x_juav(int qx);
+void set_stabilization_att_sum_err_quat_y_juav(int qy);
+void set_stabilization_att_sum_err_quat_z_juav(int qz);
+
+// input params used in computation
+int get_att_ref_quat_i_quat_qi_juav();
+int get_att_ref_quat_i_quat_qx_juav();
+int get_att_ref_quat_i_quat_qy_juav();
+int get_att_ref_quat_i_quat_qz_juav();
+int get_att_ref_quat_i_rate_p_juav();
+int get_att_ref_quat_i_rate_q_juav();
+int get_att_ref_quat_i_rate_r_juav();
+int get_att_ref_quat_i_accel_p_juav();
+int get_att_ref_quat_i_accel_q_juav();
+int get_att_ref_quat_i_accel_r_juav();
+
+
+int get_stabilization_gains_p_x_juav();
+int get_stabilization_gains_p_y_juav();
+int get_stabilization_gains_p_z_juav();
+int get_stabilization_gains_d_x_juav();
+int get_stabilization_gains_d_y_juav();
+int get_stabilization_gains_d_z_juav();
+int get_stabilization_gains_dd_x_juav();
+int get_stabilization_gains_dd_y_juav();
+int get_stabilization_gains_dd_z_juav();
+int get_stabilization_gains_i_x_juav();
+int get_stabilization_gains_i_y_juav();
+int get_stabilization_gains_i_z_juav();
+
+
+// set the results back in c
+void set_att_ref_quat_i_quat_qi_juav(int i);
+void set_att_ref_quat_i_quat_qx_juav(int i);
+void set_att_ref_quat_i_quat_qy_juav(int i);
+void set_att_ref_quat_i_quat_qz_juav(int i);
+void set_att_ref_quat_i_rate_p_juav(int i);
+void set_att_ref_quat_i_rate_q_juav(int i);
+void set_att_ref_quat_i_rate_r_juav(int i);
+void set_att_ref_quat_i_accel_p_juav(int i);
+void set_att_ref_quat_i_accel_q_juav(int i);
+void set_att_ref_quat_i_accel_r_juav(int i);
+
+
+int get_stateGetNedToBodyQuat_i_Qi_juav();
+int get_stateGetNedToBodyQuat_i_Qx_juav();
+int get_stateGetNedToBodyQuat_i_Qy_juav();
+int get_stateGetNedToBodyQuat_i_Qz_juav();
+
+
+int get_stateGetBodyRates_i_p_juav();
+int get_stateGetBodyRates_i_q_juav();
+int get_stateGetBodyRates_i_r_juav();
+
+void set_stabilization_cmd(int yaw,int pitch, int roll);
+
 #endif /* STABILIZATION_ATTITUDE_QUAT_INT_H */

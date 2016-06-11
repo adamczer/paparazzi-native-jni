@@ -309,3 +309,168 @@ void stabilization_attitude_read_rc(bool_t in_flight, bool_t in_carefree, bool_t
 #endif
   QUAT_BFP_OF_REAL(stab_att_sp_quat, q_sp);
 }
+
+void attitude_ref_quat_int_update_juav(float dt) {
+  attitude_ref_quat_int_update(&att_ref_quat_i, &stab_att_sp_quat, dt);
+}
+
+int get_stabilization_att_sum_err_quat_i_juav() {
+  return stabilization_att_sum_err_quat.qi;
+}
+int get_stabilization_att_sum_err_quat_x_juav() {
+  return stabilization_att_sum_err_quat.qx;
+}
+int get_stabilization_att_sum_err_quat_y_juav() {
+  return stabilization_att_sum_err_quat.qy;
+}
+int get_stabilization_att_sum_err_quat_z_juav() {
+  return stabilization_att_sum_err_quat.qz;
+}
+void set_stabilization_att_sum_err_quat_i_juav(int qi) {
+  stabilization_att_sum_err_quat.qi = qi;
+}
+void set_stabilization_att_sum_err_quat_x_juav(int qx) {
+  stabilization_att_sum_err_quat.qx = qx;
+}
+void set_stabilization_att_sum_err_quat_y_juav(int qy) {
+  stabilization_att_sum_err_quat.qy = qy;
+}
+void set_stabilization_att_sum_err_quat_z_juav(int qz) {
+  stabilization_att_sum_err_quat.qz = qz;
+}
+
+int get_att_ref_quat_i_quat_qi_juav() {
+  return att_ref_quat_i.quat.qi;
+}
+int get_att_ref_quat_i_quat_qx_juav() {
+  return att_ref_quat_i.quat.qx;
+}
+int get_att_ref_quat_i_quat_qy_juav() {
+  return att_ref_quat_i.quat.qy;
+}
+int get_att_ref_quat_i_quat_qz_juav() {
+  return att_ref_quat_i.quat.qz;
+}
+
+int get_att_ref_quat_i_rate_p_juav() {
+  return att_ref_quat_i.rate.p;
+}
+int get_att_ref_quat_i_rate_q_juav() {
+  return att_ref_quat_i.rate.q;
+}
+int get_att_ref_quat_i_rate_r_juav() {
+  return att_ref_quat_i.rate.r;
+}
+int get_att_ref_quat_i_accel_p_juav() {
+  return att_ref_quat_i.accel.p;
+}
+int get_att_ref_quat_i_accel_q_juav() {
+  return att_ref_quat_i.accel.q;
+}
+int get_att_ref_quat_i_accel_r_juav() {
+  return att_ref_quat_i.accel.r;
+}
+
+void set_att_ref_quat_i_quat_qi_juav(int i) {
+  att_ref_quat_i.quat.qi = i;
+}
+  void set_att_ref_quat_i_quat_qx_juav(int i) {
+  att_ref_quat_i.quat.qx = i;
+}
+void set_att_ref_quat_i_quat_qy_juav(int i) {
+  att_ref_quat_i.quat.qy = i;
+}
+void set_att_ref_quat_i_quat_qz_juav(int i) {
+  att_ref_quat_i.quat.qz = i;
+}
+
+void set_att_ref_quat_i_rate_p_juav(int i) {
+  att_ref_quat_i.rate.p = i;
+}
+void set_att_ref_quat_i_rate_q_juav(int i) {
+  att_ref_quat_i.rate.q = i;
+}
+void set_att_ref_quat_i_rate_r_juav(int i) {
+  att_ref_quat_i.rate.r = i;
+}
+void set_att_ref_quat_i_accel_p_juav(int i) {
+  att_ref_quat_i.accel.p = i;
+}
+void set_att_ref_quat_i_accel_q_juav(int i) {
+  att_ref_quat_i.accel.q = i;
+}
+void set_att_ref_quat_i_accel_r_juav(int i) {
+  att_ref_quat_i.accel.r = i;
+}
+
+int get_stabilization_gains_p_x_juav() {
+  return stabilization_gains.p.x;
+}
+int get_stabilization_gains_p_y_juav() {
+  return stabilization_gains.p.y;
+}
+int get_stabilization_gains_p_z_juav() {
+  return stabilization_gains.p.z;
+}
+int get_stabilization_gains_d_x_juav() {
+  return stabilization_gains.d.x;
+}
+int get_stabilization_gains_d_y_juav() {
+  return stabilization_gains.d.y;
+}
+int get_stabilization_gains_d_z_juav() {
+  return stabilization_gains.d.z;
+}
+int get_stabilization_gains_dd_x_juav() {
+  return stabilization_gains.dd.x;
+}
+int get_stabilization_gains_dd_y_juav() {
+  return stabilization_gains.dd.y;
+}
+int get_stabilization_gains_dd_z_juav() {
+  return stabilization_gains.dd.z;
+}
+int get_stabilization_gains_i_x_juav() {
+  return stabilization_gains.i.x;
+}
+int get_stabilization_gains_i_y_juav() {
+  return stabilization_gains.i.y;
+}
+int get_stabilization_gains_i_z_juav() {
+  return stabilization_gains.i.z;
+}
+
+void set_stabilization_cmd(int yaw,int pitch, int roll) {
+  stabilization_cmd[COMMAND_ROLL] = roll;
+  stabilization_cmd[COMMAND_PITCH] = pitch;
+  stabilization_cmd[COMMAND_YAW] = yaw;
+}
+
+int get_stateGetNedToBodyQuat_i_Qi_juav() {
+  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  return quat->qi;
+}
+int get_stateGetNedToBodyQuat_i_Qx_juav() {
+  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  return quat->qx;
+}
+int get_stateGetNedToBodyQuat_i_Qy_juav() {
+  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  return quat->qy;
+}
+int get_stateGetNedToBodyQuat_i_Qz_juav() {
+  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  return quat->qz;
+}
+int get_stateGetBodyRates_i_p_juav() {
+  struct Int32Rates *body_rate = stateGetBodyRates_i();
+  return body_rate->p;
+}
+int get_stateGetBodyRates_i_q_juav() {
+  struct Int32Rates *body_rate = stateGetBodyRates_i();
+  return body_rate->q;
+}
+int get_stateGetBodyRates_i_r_juav() {
+  struct Int32Rates *body_rate = stateGetBodyRates_i();
+  return body_rate->r;
+}
