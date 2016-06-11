@@ -278,7 +278,7 @@ STATIC_INLINE void main_periodic(void)
 #endif
 
   /* run control loops */
-  printf("autipilot periodic\n");
+//  printf("autipilot periodic\n");
   autopilot_periodic();
   /* set actuators     */
   //actuators_set(autopilot_motors_on);

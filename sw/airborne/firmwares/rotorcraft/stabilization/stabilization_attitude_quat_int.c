@@ -34,6 +34,7 @@
 #include "math/pprz_algebra_float.h"
 #include "math/pprz_algebra_int.h"
 #include "state.h"
+#include <time.h>
 
 struct Int32AttitudeGains stabilization_gains = {
   {STABILIZATION_ATTITUDE_PHI_PGAIN, STABILIZATION_ATTITUDE_THETA_PGAIN, STABILIZATION_ATTITUDE_PSI_PGAIN },
@@ -70,6 +71,7 @@ struct AttRefQuatInt att_ref_quat_i;
 #define GAIN_PRESCALER_P 12
 #define GAIN_PRESCALER_D 3
 #define GAIN_PRESCALER_I 3
+static bool juavBenchmarkLogging = false;
 
 #if PERIODIC_TELEMETRY
 #include "subsystems/datalink/telemetry.h"
@@ -232,7 +234,7 @@ static void attitude_run_fb(int32_t fb_commands[], struct Int32AttitudeGains *ga
     GAIN_PRESCALER_I * gains->i.z  * QUAT1_FLOAT_OF_BFP(sum_err->qz);
 
 }
-
+static int iterCount = 0;
 void stabilization_attitude_run(bool_t enable_integrator)
 {
 //  printf("stabilization_attitude_run\n");
@@ -244,6 +246,8 @@ void stabilization_attitude_run(bool_t enable_integrator)
    */
   static const float dt = (1./PERIODIC_FREQUENCY);
   attitude_ref_quat_int_update(&att_ref_quat_i, &stab_att_sp_quat, dt);
+  struct timespec t0;
+  clock_gettime(CLOCK_REALTIME, &t0);
 
   /*
    * Compute errors for feedback
@@ -296,6 +300,16 @@ void stabilization_attitude_run(bool_t enable_integrator)
   BoundAbs(stabilization_cmd[COMMAND_ROLL], MAX_PPRZ);
   BoundAbs(stabilization_cmd[COMMAND_PITCH], MAX_PPRZ);
   BoundAbs(stabilization_cmd[COMMAND_YAW], MAX_PPRZ);
+
+
+  struct timespec t1;
+  clock_gettime(CLOCK_REALTIME, &t1); // Works on Linux
+  long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
+  iterCount++;
+  if(juavBenchmarkLogging) {
+    printf("%d", iterCount);
+    printf(" %d\n", elapsed);
+  }
 }
 
 void stabilization_attitude_read_rc(bool_t in_flight, bool_t in_carefree, bool_t coordinated_turn)
