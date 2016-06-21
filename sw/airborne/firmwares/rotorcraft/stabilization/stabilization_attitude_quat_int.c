@@ -247,7 +247,8 @@ void stabilization_attitude_run(bool_t enable_integrator)
   static const float dt = (1./PERIODIC_FREQUENCY);
   attitude_ref_quat_int_update(&att_ref_quat_i, &stab_att_sp_quat, dt);
   struct timespec t0;
-  clock_gettime(CLOCK_REALTIME, &t0);
+  if(juavBenchmarkLogging)
+    clock_gettime(CLOCK_REALTIME, &t0);
 
   /*
    * Compute errors for feedback
@@ -302,11 +303,11 @@ void stabilization_attitude_run(bool_t enable_integrator)
   BoundAbs(stabilization_cmd[COMMAND_YAW], MAX_PPRZ);
 
 
-  struct timespec t1;
-  clock_gettime(CLOCK_REALTIME, &t1); // Works on Linux
-  long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
-  iterCount++;
   if(juavBenchmarkLogging) {
+    iterCount++;
+    struct timespec t1;
+    clock_gettime(CLOCK_REALTIME, &t1); // Works on Linux
+    long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
     printf("%d", iterCount);
     printf(" %d\n", elapsed);
   }

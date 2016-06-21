@@ -428,10 +428,14 @@ static void nps_main_init(void)
 void nps_main_run_sim_step_juav() {
   nps_main_run_sim_step();
 }
-
+static bool juavBenchmarkLoggingMainStep = true;
+static int iterCountMain =0;
 static void nps_main_run_sim_step(void)
 {
   //  printf("sim at %f\n", nps_main.sim_time);
+  struct timespec t0;
+  if(juavBenchmarkLoggingMainStep)
+    clock_gettime(CLOCK_REALTIME, &t0);
 
   nps_atmosphere_update(SIM_DT);
 
@@ -442,6 +446,15 @@ static void nps_main_run_sim_step(void)
   nps_sensors_run_step(nps_main.sim_time);
 
   nps_autopilot_run_step(nps_main.sim_time);
+
+  if(juavBenchmarkLoggingMainStep) {
+    iterCountMain++;
+    struct timespec t1;
+    clock_gettime(CLOCK_REALTIME, &t1); // Works on Linux
+    long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
+    printf("%d", iterCountMain);
+    printf(" %d\n", elapsed);
+  }
 
 }
 
