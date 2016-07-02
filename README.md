@@ -1,4 +1,23 @@
-# MAIN README
+jUAV Modified Paparazzi
+This is a modified version of the Paparazzi UAV project.
+
+The modifications to this code were made to facilitate development of a Java Autopilot that will be
+ compatible with the existing Paparazzi tools (Ground Station, NPS Simulator, ect.)
+
+The modifications to this code include:
+ 1) Modification to the build run in the Paparazzi tool while compiling Airframe specific code.
+    These modification create a shared library file which will be found in the Airframes nps folder
+    ex. var/aircrafts/Quad_LisaM_2/nps/libpapa.so
+ 2) Various extra functions allowing for entry from the jUAV code base. These extra functions are
+    called over JNI allowing for jUAV to fully function even though it is still in the process of
+    being ported.
+
+The current implementation of the jUAV code base has only been tested using the Quad_LisaM_2 airframe.
+jUAV can be found at https://github.com/adamczer/pappa
+
+Instructions on how to build and run Paparazzi are seen in the original Paparazzi README seen below:
+***********
+MAIN README
 
 Paparazzi UAS
 =============
