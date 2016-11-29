@@ -190,6 +190,7 @@ int fake_nps_main_periodic()
 
 int main(int argc, char **argv)
 {
+  printf("main MF\n");
 
   if (!nps_main_parse_options(argc, argv)) { return 1; }
 
@@ -404,20 +405,24 @@ static void nps_main_init(void)
 
   enum NpsRadioControlType rc_type;
   char *rc_dev = NULL;
-  if (nps_main.js_dev) {
-    rc_type = JOYSTICK;
-    rc_dev = nps_main.js_dev;
-  } else if (nps_main.spektrum_dev) {
-    rc_type = SPEKTRUM;
-    rc_dev = nps_main.spektrum_dev;
-  } else {
+//  if (nps_main.js_dev) {
+//    printf("nps_main.js_dev\n");
+//    rc_type = JOYSTICK;
+//    rc_dev = nps_main.js_dev;
+//  } else if (nps_main.spektrum_dev) {
+//    printf("nps_main.spektrum_dev\n");
+//    rc_type = SPEKTRUM;
+//    rc_dev = nps_main.spektrum_dev;
+//  } else {
+//    printf("else\n");
     rc_type = SCRIPT;
-  }
+//  }
   nps_autopilot_init(rc_type, nps_main.rc_script, rc_dev);
 
-  if (nps_main.fg_host) {
-    nps_flightgear_init(nps_main.fg_host, nps_main.fg_port, nps_main.fg_time_offset);
-  }
+//  if (nps_main.fg_host) {
+//    printf("nps_main.fg_host\n");
+//    nps_flightgear_init(nps_main.fg_host, nps_main.fg_port, nps_main.fg_time_offset);
+//  }
 
 #if DEBUG_NPS_TIME
   printf("host_time_factor,host_time_elapsed,host_time_now,scaled_initial_time,sim_time_before,display_time_before,sim_time_after,display_time_after\n");
@@ -428,7 +433,7 @@ static void nps_main_init(void)
 void nps_main_run_sim_step_juav() {
   nps_main_run_sim_step();
 }
-static bool juavBenchmarkLoggingMainStep = true;
+static bool juavBenchmarkLoggingMainStep = false;
 static int iterCountMain =0;
 static void nps_main_run_sim_step(void)
 {

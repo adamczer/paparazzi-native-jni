@@ -279,8 +279,9 @@ static void send_rotorcraft_cmd(struct transport_tx *trans, struct link_device *
 }
 
 
-void autopilot_init(void)
+void autopilot_init(void)//TODO PORT
 {
+//    printf("autopilot_init*********************************************************************************\n");
   /* mode is finally set at end of init if MODE_STARTUP is not KILL */
   autopilot_mode = AP_MODE_KILL;
   autopilot_motors_on = FALSE;
@@ -293,10 +294,11 @@ void autopilot_init(void)
   autopilot_flight_time = 0;
   autopilot_rc = TRUE;
   autopilot_power_switch = FALSE;
-#ifdef POWER_SWITCH_GPIO
-  gpio_setup_output(POWER_SWITCH_GPIO);
-  gpio_clear(POWER_SWITCH_GPIO); // POWER OFF
-#endif
+//#ifdef POWER_SWITCH_GPIO
+//    printf("POWER_SWITCH_GPIO\n");
+//  gpio_setup_output(POWER_SWITCH_GPIO);
+//  gpio_clear(POWER_SWITCH_GPIO); // POWER OFF
+//#endif
 
   autopilot_arming_init();
 
@@ -321,9 +323,11 @@ void autopilot_init(void)
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_CMD, send_rotorcraft_cmd);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_DL_VALUE, send_dl_value);
 #ifdef ACTUATORS
+//  printf("ACTUATORS\n");
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ACTUATORS, send_actuators);
 #endif
 #ifdef RADIO_CONTROL
+//    printf("RADIO_CONTROL\n");
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_RC, send_rc);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_RADIO_CONTROL, send_rotorcraft_rc);
 #endif

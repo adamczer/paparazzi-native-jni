@@ -85,6 +85,7 @@ void nps_autopilot_run_systime_step(void)
 
 void nps_autopilot_run_step(double time)
 {
+//  printf("nps_autopilot_run_step\n");
 
   nps_electrical_run_step(time);
 

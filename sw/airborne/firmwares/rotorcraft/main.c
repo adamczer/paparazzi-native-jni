@@ -240,6 +240,7 @@ STATIC_INLINE void main_init(void)
 
 STATIC_INLINE void handle_periodic_tasks(void)
 {
+//  printf("handle_periodic_tasks\n");
   if (sys_time_check_and_ack_timer(main_periodic_tid)) {
     main_periodic();
   }
@@ -267,7 +268,7 @@ STATIC_INLINE void handle_periodic_tasks(void)
 
 STATIC_INLINE void main_periodic(void)
 {
-
+//printf("main_periodic\n");
 #if USE_IMU
   imu_periodic();
 #endif

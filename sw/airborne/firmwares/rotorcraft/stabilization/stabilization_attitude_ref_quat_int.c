@@ -48,6 +48,8 @@ static void update_ref_model(struct AttRefQuatInt *ref);
  * Should not rely on any global variables, so these functions can be used like a lib.
  *
  */
+
+//TODO PORT ALL THIS
 void attitude_ref_quat_int_init(struct AttRefQuatInt *ref)
 {
   INT_EULERS_ZERO(ref->euler);

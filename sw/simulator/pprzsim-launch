@@ -172,7 +172,7 @@ def main():
 
     # start the simulator, replacing this process
     if options.is_java == "yes":
-        os.execv("/home/gassa/Research/juav/exec_command.sh",  ["/home/gassa/Research/juav/exec_command.sh"]+simargs)
+        os.execv("/home/adamczer/IdeaProjects/juav-autopilot/exec_command.sh",  ["/home/adamczer/IdeaProjects/juav-autopilot/exec_command.sh"]+simargs)
     else:
         os.execv(simsitl, [simsitl] + simargs)
 

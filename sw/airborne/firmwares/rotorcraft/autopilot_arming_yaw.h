@@ -58,6 +58,7 @@ enum arming_state autopilot_check_motor_status;
 
 static inline void autopilot_arming_init(void)
 {
+  printf("\nautopilot_arming_init\n");
   autopilot_motors_on_counter = 0;
   autopilot_check_motor_status = STATUS_INITIALISE_RC;
 }

@@ -134,7 +134,7 @@ static void send_ahrs_ref_quat(struct transport_tx *trans, struct link_device *d
                               &(quat->qz));
 }
 #endif
-
+//TODO ALL THIS
 void stabilization_attitude_init(void)
 {
 
@@ -149,7 +149,7 @@ void stabilization_attitude_init(void)
 #endif
 }
 
-void stabilization_attitude_enter(void)
+void stabilization_attitude_enter(void) //TODO PORT
 {
 //  printf("stabilization_attitude_enter\n");
 
@@ -164,7 +164,7 @@ void stabilization_attitude_enter(void)
 
 void stabilization_attitude_set_failsafe_setpoint(void)
 {
-//  printf("stabilization_attitude_set_failsafe_setpoint\n");
+//  printf("stabilization_attitude_set_failsafe_setpoint yyyyyyyy\n");
   /* set failsafe to zero roll/pitch and current heading */
   int32_t heading2 = stabilization_attitude_get_heading_i() / 2;
   PPRZ_ITRIG_COS(stab_att_sp_quat.qi, heading2);
@@ -173,7 +173,7 @@ void stabilization_attitude_set_failsafe_setpoint(void)
   PPRZ_ITRIG_SIN(stab_att_sp_quat.qz, heading2);
 }
 
-void stabilization_attitude_set_rpy_setpoint_i(struct Int32Eulers *rpy)
+void stabilization_attitude_set_rpy_setpoint_i(struct Int32Eulers *rpy)//TODO PORT
 {
 //  printf("stabilization_attitude_set_rpy_setpoint_i\n");
   // stab_att_sp_euler.psi still used in ref..
@@ -313,13 +313,16 @@ void stabilization_attitude_run(bool_t enable_integrator)
   }
 }
 
+//TODO PORT THIS
 void stabilization_attitude_read_rc(bool_t in_flight, bool_t in_carefree, bool_t coordinated_turn)
 {
 //  printf("stabilization_attitude_read_rc\n");
   struct FloatQuat q_sp;
 #if USE_EARTH_BOUND_RC_SETPOINT
+    printf("USE_EARTH_BOUND_RC_SETPOINT\n");
   stabilization_attitude_read_rc_setpoint_quat_earth_bound_f(&q_sp, in_flight, in_carefree, coordinated_turn);
 #else
+//    printf("USE_EARTH_BOUND_RC_SETPOINT ELSE\n");
   stabilization_attitude_read_rc_setpoint_quat_f(&q_sp, in_flight, in_carefree, coordinated_turn);
 #endif
   QUAT_BFP_OF_REAL(stab_att_sp_quat, q_sp);

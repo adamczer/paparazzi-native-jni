@@ -77,6 +77,7 @@ int8_t register_periodic_telemetry(struct periodic_telemetry *_pt, uint8_t _id, 
  */
 void periodic_telemetry_err_report(uint8_t _process, uint8_t _mode, uint8_t _id)
 {
+  printf("periodic_telemetry_err_report\n")
   uint8_t process = _process;
   uint8_t mode = _mode;
   uint8_t id = _id;
