@@ -156,4 +156,10 @@ static inline void guidance_h_SetTau(float tau)
 bool run_stabilization_attitude_run_juav();
 void guidance_h_run_juav(bool  in_flight);
 
+void juav_register_periodic_telemetry_send_gh();
+void juav_register_periodic_telemetry_send_hover_loop();
+void juav_register_periodic_telemetry_send_href();
+void juav_register_periodic_telemetry_send_tune_hover();
+
+
 #endif /* GUIDANCE_H_H */

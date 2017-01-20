@@ -149,6 +149,17 @@ void stabilization_attitude_init(void)
 #endif
 }
 
+void juav_register_periodic_telemetry_send_att() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_STAB_ATTITUDE_INT, send_att);
+}
+void juav_register_periodic_telemetry_send_att_ref() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_STAB_ATTITUDE_REF_INT, send_att_ref);
+}
+void juav_register_periodic_telemetry_send_ahrs_ref_quat() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_AHRS_REF_QUAT, send_ahrs_ref_quat);
+}
+
+
 void stabilization_attitude_enter(void) //TODO PORT
 {
 //  printf("stabilization_attitude_enter\n");

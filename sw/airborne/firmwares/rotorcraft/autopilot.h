@@ -66,6 +66,7 @@ extern bool_t autopilot_power_switch;
 extern void autopilot_init(void);
 extern void autopilot_periodic(void);
 extern void autopilot_on_rc_frame(void);
+extern void autopilot_on_rc_frame_juav(void);
 extern void autopilot_set_mode(uint8_t new_autopilot_mode);
 extern void autopilot_set_motors_on(bool_t motors_on);
 extern void autopilot_check_in_flight(bool_t motors_on);
@@ -113,12 +114,7 @@ extern uint16_t autopilot_flight_time;
  *  and motors_on flag status
  */
 #ifdef ROTORCRAFT_IS_HELI
-#define SetRotorcraftCommands(_cmd, _in_flight,  _motor_on) { \
-    commands[COMMAND_ROLL] = _cmd[COMMAND_ROLL];                \
-    commands[COMMAND_PITCH] = _cmd[COMMAND_PITCH];              \
-    commands[COMMAND_YAW] = _cmd[COMMAND_YAW];                  \
-    commands[COMMAND_THRUST] = _cmd[COMMAND_THRUST];            \
-  }
+#define SetRotorcraftCommands(_cmd, _in_flight,  _motor_on) { }
 #else
 
 #ifndef ROTORCRAFT_COMMANDS_YAW_ALWAYS_ENABLED
@@ -129,15 +125,15 @@ extern uint16_t autopilot_flight_time;
     commands[COMMAND_PITCH] = _cmd[COMMAND_PITCH];              \
     commands[COMMAND_YAW] = _cmd[COMMAND_YAW];                  \
     commands[COMMAND_THRUST] = _cmd[COMMAND_THRUST];            \
+printf("_in_flight = %d\n", _in_flight);\
+printf("_motor_on = %d\n", _motor_on);\
+printf("COMMAND_ROLL = %d\n", commands[COMMAND_ROLL]);\
+printf("COMMAND_PITCH = %d\n", commands[COMMAND_PITCH]);\
+printf("COMMAND_YAW = %d\n", commands[COMMAND_YAW]);\
+printf("COMMAND_THRUST = %d\n\n\n", commands[COMMAND_THRUST]);\
   }
 #else
-#define SetRotorcraftCommands(_cmd, _in_flight,  _motor_on) { \
-    if (!(_motor_on)) { _cmd[COMMAND_THRUST] = 0; }             \
-    commands[COMMAND_ROLL] = _cmd[COMMAND_ROLL];                \
-    commands[COMMAND_PITCH] = _cmd[COMMAND_PITCH];              \
-    commands[COMMAND_YAW] = _cmd[COMMAND_YAW];                  \
-    commands[COMMAND_THRUST] = _cmd[COMMAND_THRUST];            \
-  }
+#define SetRotorcraftCommands(_cmd, _in_flight,  _motor_on) { }
 #endif
 #endif
 
@@ -218,6 +214,49 @@ bool get_autopilot_in_flight_juav(); // needed for guidance code
 // test all native
 void guidance_h_run_native_test_juav(bool in_flight);
 
+void juav_register_periodic_telemetry_send_autopilot_version(void);
+void juav_register_periodic_telemetry_send_alive(void);
+void juav_register_periodic_telemetry_send_status(void);
+void juav_register_periodic_telemetry_send_attitude(void);
+void juav_register_periodic_telemetry_send_energy(void);
+void juav_register_periodic_telemetry_send_fp(void);
+void juav_register_periodic_telemetry_send_rotorcraft_cmd(void);
+void juav_register_periodic_telemetry_send_dl_value(void);
+void juav_register_periodic_telemetry_send_actuators(void);
+void juav_register_periodic_telemetry_send_rc(void);
+void juav_register_periodic_telemetry_send_rotorcraft_rc(void);
+
+int juav_get_radio_control_value(int index);
+short juav_get_radio_control_status();
+
+struct EnuCoor_i juav_get_navigation_carrot();
+float juav_get_dist2_to_home();
+bool juav_get_too_far_from_home();
+short juav_get_horizontal_mode();
+int juav_get_nav_roll();
+int juav_get_nav_pitch();
+int juav_get_nav_heading();
+void juav_set_nav_heading(int new_heading);
+int juav_get_vertical_mode();
+int juav_get_nav_climb();
+int juav_get_nav_flight_altitude();
+int juav_get_nav_throttle();
+
+void juav_set_guidance_h_mode(short newMode);
+void juav_set_guidance_v_mode(short newMode);
+void juav_set_autopilot_mode(short newMode);
+void juav_set_stabilization_command(int cmdIndex, int command);
+bool juav_get_autopilot_motors_on();
+void juav_set_autopilot_motors_on(bool newValue);
+
+void juav_set_autopilot_check_motor_status(int newValue);
+int juav_get_autopilot_check_motor_status();
+void juav_set_autopilot_motors_on_counter(int newValue);
+int juav_get_autopilot_motors_on_counter();
+
+
+int juav_get_stabilization_cmd(int cmdIndex);
+void juav_set_stabilization_cmd(int cmdIndex, int newValue);
 
 
 #endif /* AUTOPILOT_H */

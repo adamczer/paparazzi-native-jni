@@ -60,6 +60,7 @@
 #endif
 
 extern void RadioControlEventImp(void (*_received_frame_handler)(void));
+void RadioControlEventImpJuav(void);
 
 #if USE_NPS
 extern void radio_control_feed(void);

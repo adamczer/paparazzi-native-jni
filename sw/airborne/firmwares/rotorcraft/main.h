@@ -53,4 +53,8 @@ void main_periodic_juav_autopilot_post();
 void main_periodic_juav_test();
 
 
+void main_event_juav_post(); //prior to autopilot rc
+void main_event_juav_prior();//after autopilot rc
+
+
 #endif /* MAIN_H */

@@ -47,6 +47,7 @@ bool_t autopilot_unarmed_in_auto;
 
 static inline void autopilot_arming_init(void)
 {
+  printf("autopilot_arming_init switch\n");
   autopilot_arming_state = STATE_UNINIT;
   autopilot_unarmed_in_auto = FALSE;
 }

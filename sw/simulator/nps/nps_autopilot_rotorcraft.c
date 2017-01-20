@@ -92,23 +92,27 @@ void nps_autopilot_run_step(double time)
 #if RADIO_CONTROL && !RADIO_CONTROL_TYPE_DATALINK
   if (nps_radio_control_available(time)) {
     radio_control_feed();
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 #endif
 
   if (nps_sensors_gyro_available()) {
     imu_feed_gyro_accel();
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 
   if (nps_sensors_mag_available()) {
     imu_feed_mag();
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 
   if (nps_sensors_baro_available()) {
     float pressure = (float) sensors.baro.value;
     AbiSendMsgBARO_ABS(BARO_SIM_SENDER_ID, pressure);
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 
@@ -126,6 +130,7 @@ void nps_autopilot_run_step(double time)
 
   if (nps_sensors_gps_available()) {
     gps_feed_value();
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 
@@ -183,6 +188,20 @@ void nps_autopilot_run_step_radio_juav(double time) {
     main_event();
   }
 #endif
+}
+
+bool nps_autopilot_run_step_radio_juav_no_main_event(double time) {
+#if RADIO_CONTROL && !RADIO_CONTROL_TYPE_DATALINK
+  bool ret = nps_radio_control_available(time);
+//  printf("nps_radio_control_available(time) = %d\n", nps_radio_control_available(time));
+  if (ret) {
+//  printf("nps_radio_control_available(time) = TRUE");
+    radio_control_feed();
+//    main_event();
+  }
+  return ret;
+#endif
+  return false;
 }
 
 

@@ -129,9 +129,13 @@ void stabilization_rate_init(void)
   INT_RATES_ZERO(stabilization_rate_sum_err);
 
 #if PERIODIC_TELEMETRY
-  printf("register_periodic_telemetry\n");
+//  printf("register_periodic_telemetry\n");//USED
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_RATE_LOOP, send_rate);
 #endif
+}
+
+void juav_register_periodic_telemetry_send_rate() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_RATE_LOOP, send_rate);
 }
 
 

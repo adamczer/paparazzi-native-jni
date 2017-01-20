@@ -167,7 +167,7 @@ static void send_tune_hover(struct transport_tx *trans, struct link_device *dev)
 
 void guidance_h_init(void)//TODO PORT
 {
-  printf("GUIDANCE H INIT\n");
+//  printf("GUIDANCE H INIT\n");
 
   guidance_h.mode = GUIDANCE_H_MODE_KILL;
   guidance_h.use_ref = GUIDANCE_H_USE_REF;
@@ -193,7 +193,7 @@ void guidance_h_init(void)//TODO PORT
 #endif
 
 #if PERIODIC_TELEMETRY
-  printf("PERIODIC_TELEMETRY\n");
+//  printf("PERIODIC_TELEMETRY\n");
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_GUIDANCE_H_INT, send_gh);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_HOVER_LOOP, send_hover_loop);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_GUIDANCE_H_REF_INT, send_href);
@@ -205,6 +205,20 @@ void guidance_h_init(void)//TODO PORT
   guidance_indi_enter();
 #endif
 }
+
+void juav_register_periodic_telemetry_send_gh() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_GUIDANCE_H_INT, send_gh);
+}
+void juav_register_periodic_telemetry_send_hover_loop() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_HOVER_LOOP, send_hover_loop);
+}
+void juav_register_periodic_telemetry_send_href() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_GUIDANCE_H_REF_INT, send_href);
+}
+void juav_register_periodic_telemetry_send_tune_hover() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_TUNE_HOVER, send_tune_hover);
+}
+
 
 
 static inline void reset_guidance_reference_from_current_position(void)//TODO PORT
@@ -219,91 +233,91 @@ static inline void reset_guidance_reference_from_current_position(void)//TODO PO
 
 void guidance_h_mode_changed(uint8_t new_mode)
 {
-  if (new_mode == guidance_h.mode) {
-    return;
-  }
-
-  if (new_mode != GUIDANCE_H_MODE_FORWARD && new_mode != GUIDANCE_H_MODE_RATE) {
-    transition_percentage = 0;
-    transition_theta_offset = 0;
-  }
-
-  switch (new_mode) {
-//    case GUIDANCE_H_MODE_RC_DIRECT:
-//      stabilization_none_enter();
-//          printf("CASE GUIDANCE_H_MODE_RC_DIRECT\n");
-//      break;
-
-//    case GUIDANCE_H_MODE_RATE:
-//      stabilization_rate_enter();
-//          printf("CASE GUIDANCE_H_MODE_RATE\n");
-//      break;
-
-//    case GUIDANCE_H_MODE_CARE_FREE:
-//      stabilization_attitude_reset_care_free_heading();
-//      printf("CASE GUIDANCE_H_MODE_CARE_FREE\n");
-//    case GUIDANCE_H_MODE_FORWARD:
-//      printf("CASE GUIDANCE_H_MODE_FORWARD\n");
-    case GUIDANCE_H_MODE_ATTITUDE:
-//      printf("CASE GUIDANCE_H_MODE_ATTITUDE\n");
-//#if NO_ATTITUDE_RESET_ON_MODE_CHANGE
+//  if (new_mode == guidance_h.mode) {
+//    return;
+//  }
 //
-//    printf("NO_ATTITUDE_RESET_ON_MODE_CHANGE\n");
-//      /* reset attitude stabilization if previous mode was not using it */
-//      if (guidance_h.mode == GUIDANCE_H_MODE_KILL ||
-//          guidance_h.mode == GUIDANCE_H_MODE_RATE ||
-//          guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
-//#endif
-//      printf("stabilization_attitude_enter guidance_h.c 246\n");
-        stabilization_attitude_enter();
-      break;
+//  if (new_mode != GUIDANCE_H_MODE_FORWARD && new_mode != GUIDANCE_H_MODE_RATE) {
+//    transition_percentage = 0;
+//    transition_theta_offset = 0;
+//  }
 
-//    case GUIDANCE_H_MODE_HOVER:
-//      printf("CASE GUIDANCE_H_MODE_HOVER\n");
-//#if GUIDANCE_INDI
-//      printf("GUIDANCE_INDI\n");
-//      guidance_indi_enter();
-//#endif
-//      guidance_h_hover_enter();
-//#if NO_ATTITUDE_RESET_ON_MODE_CHANGE
-//      /* reset attitude stabilization if previous mode was not using it */
-//      if (guidance_h.mode == GUIDANCE_H_MODE_KILL ||
-//          guidance_h.mode == GUIDANCE_H_MODE_RATE ||
-//          guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
-//#endif
-////          printf("stabilization_attitude_enter guidance_h.c 261\n");
+//  switch (new_mode) {
+////    case GUIDANCE_H_MODE_RC_DIRECT:
+////      stabilization_none_enter();
+////          printf("CASE GUIDANCE_H_MODE_RC_DIRECT\n");
+////      break;
+//
+////    case GUIDANCE_H_MODE_RATE:
+////      stabilization_rate_enter();
+////          printf("CASE GUIDANCE_H_MODE_RATE\n");
+////      break;
+//
+////    case GUIDANCE_H_MODE_CARE_FREE:
+////      stabilization_attitude_reset_care_free_heading();
+////      printf("CASE GUIDANCE_H_MODE_CARE_FREE\n");
+////    case GUIDANCE_H_MODE_FORWARD:
+////      printf("CASE GUIDANCE_H_MODE_FORWARD\n");
+//    case GUIDANCE_H_MODE_ATTITUDE:
+////      printf("CASE GUIDANCE_H_MODE_ATTITUDE\n");
+////#if NO_ATTITUDE_RESET_ON_MODE_CHANGE
+////
+////    printf("NO_ATTITUDE_RESET_ON_MODE_CHANGE\n");
+////      /* reset attitude stabilization if previous mode was not using it */
+////      if (guidance_h.mode == GUIDANCE_H_MODE_KILL ||
+////          guidance_h.mode == GUIDANCE_H_MODE_RATE ||
+////          guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
+////#endif
+////      printf("stabilization_attitude_enter guidance_h.c 246\n");
 //        stabilization_attitude_enter();
 //      break;
 //
-//#if GUIDANCE_H_MODE_MODULE_SETTING == GUIDANCE_H_MODE_MODULE
-//    case GUIDANCE_H_MODE_MODULE:
-//      printf("guidance_h_module_enter()\n");
-//      guidance_h_module_enter();
+////    case GUIDANCE_H_MODE_HOVER:
+////      printf("CASE GUIDANCE_H_MODE_HOVER\n");
+////#if GUIDANCE_INDI
+////      printf("GUIDANCE_INDI\n");
+////      guidance_indi_enter();
+////#endif
+////      guidance_h_hover_enter();
+////#if NO_ATTITUDE_RESET_ON_MODE_CHANGE
+////      /* reset attitude stabilization if previous mode was not using it */
+////      if (guidance_h.mode == GUIDANCE_H_MODE_KILL ||
+////          guidance_h.mode == GUIDANCE_H_MODE_RATE ||
+////          guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
+////#endif
+//////          printf("stabilization_attitude_enter guidance_h.c 261\n");
+////        stabilization_attitude_enter();
+////      break;
+////
+////#if GUIDANCE_H_MODE_MODULE_SETTING == GUIDANCE_H_MODE_MODULE
+////    case GUIDANCE_H_MODE_MODULE:
+////      printf("guidance_h_module_enter()\n");
+////      guidance_h_module_enter();
+////      break;
+////#endif
+//
+//    case GUIDANCE_H_MODE_NAV:
+////      printf("CASE GUIDANCE_H_MODE_NAV\n");
+//      guidance_h_nav_enter();
+////#if NO_ATTITUDE_RESET_ON_MODE_CHANGE
+////    printf("NO_ATTITUDE_RESET_ON_MODE_CHANGE\n");
+////      /* reset attitude stabilization if previous mode was not using it */
+////      if (guidance_h.mode == GUIDANCE_H_MODE_KILL ||
+////          guidance_h.mode == GUIDANCE_H_MODE_RATE ||
+////          guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
+////#endif
+////          printf("stabilization_attitude_enter guidance_h.c 279\n");
+//        stabilization_attitude_enter();
 //      break;
-//#endif
-
-    case GUIDANCE_H_MODE_NAV:
-//      printf("CASE GUIDANCE_H_MODE_NAV\n");
-      guidance_h_nav_enter();
-//#if NO_ATTITUDE_RESET_ON_MODE_CHANGE
-//    printf("NO_ATTITUDE_RESET_ON_MODE_CHANGE\n");
-//      /* reset attitude stabilization if previous mode was not using it */
-//      if (guidance_h.mode == GUIDANCE_H_MODE_KILL ||
-//          guidance_h.mode == GUIDANCE_H_MODE_RATE ||
-//          guidance_h.mode == GUIDANCE_H_MODE_RC_DIRECT)
-//#endif
-//          printf("stabilization_attitude_enter guidance_h.c 279\n");
-        stabilization_attitude_enter();
-      break;
-
-//    case GUIDANCE_H_MODE_FLIP:
-//      printf("CASE GUIDANCE_H_MODE_FLIP\n");
-//      guidance_flip_enter();
+//
+////    case GUIDANCE_H_MODE_FLIP:
+////      printf("CASE GUIDANCE_H_MODE_FLIP\n");
+////      guidance_flip_enter();
+////      break;
+//
+//    default:
 //      break;
-
-    default:
-      break;
-  }
+//  }
 
   guidance_h.mode = new_mode;
 

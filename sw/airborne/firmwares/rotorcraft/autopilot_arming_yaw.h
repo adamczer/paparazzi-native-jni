@@ -58,7 +58,7 @@ enum arming_state autopilot_check_motor_status;
 
 static inline void autopilot_arming_init(void)
 {
-  printf("\nautopilot_arming_init\n");
+//  printf("\nautopilot_arming_init yaw\n");
   autopilot_motors_on_counter = 0;
   autopilot_check_motor_status = STATUS_INITIALISE_RC;
 }
@@ -85,71 +85,89 @@ static inline void autopilot_arming_check_motors_on(void)
 {
   /* only allow switching motor if not in KILL mode */
   if (autopilot_mode != AP_MODE_KILL) {
+//    printf("autopilot_mode != AP_MODE_KILL\n");
 
     switch (autopilot_check_motor_status) {
       case STATUS_INITIALISE_RC: // Wait until RC is initialised (it being centered is a good pointer to this)
-        if (THROTTLE_STICK_DOWN() && YAW_STICK_CENTERED() && PITCH_STICK_CENTERED() && ROLL_STICK_CENTERED()) {
+//        printf("STATUS_INITIALISE_RC\n");
+            if (THROTTLE_STICK_DOWN() && YAW_STICK_CENTERED() && PITCH_STICK_CENTERED() && ROLL_STICK_CENTERED()) {
+//              printf("IN IF nothing\n");
           autopilot_check_motor_status = STATUS_MOTORS_OFF;
         }
         break;
       case STATUS_MOTORS_AUTOMATICALLY_OFF: // Motors were disarmed externally
+//        printf("STATUS_MOTORS_AUTOMATICALLY_OFF\n");
         //(possibly due to crash)
         //wait extra delay before enabling the normal arming state machine
         autopilot_motors_on = FALSE;
         autopilot_motors_on_counter = 0;
         if (THROTTLE_STICK_DOWN() && YAW_STICK_CENTERED()) { // stick released
+          printf("IN IF RELEASED\n");
           autopilot_check_motor_status = STATUS_MOTORS_AUTOMATICALLY_OFF_SAFETY_WAIT;
         }
         break;
       case STATUS_MOTORS_AUTOMATICALLY_OFF_SAFETY_WAIT:
+//        printf("STATUS_MOTORS_AUTOMATICALLY_OFF_SAFETY_WAIT\n");
           autopilot_motors_on_counter++;
           if (autopilot_motors_on_counter >= MOTOR_ARMING_DELAY) {
             autopilot_check_motor_status = STATUS_MOTORS_OFF;
           }
         break;
       case STATUS_MOTORS_OFF:
+//        printf("STATUS_MOTORS_OFF\n");
         autopilot_motors_on = FALSE;
         autopilot_motors_on_counter = 0;
         if (THROTTLE_STICK_DOWN() && YAW_STICK_PUSHED()) { // stick pushed
+          printf("IN IF pushed\n");
           autopilot_check_motor_status = STATUS_M_OFF_STICK_PUSHED;
         }
         break;
       case STATUS_M_OFF_STICK_PUSHED:
+//        printf("STATUS_M_OFF_STICK_PUSHED\n");
         autopilot_motors_on = FALSE;
         autopilot_motors_on_counter++;
         if (autopilot_motors_on_counter >= MOTOR_ARMING_DELAY) {
           autopilot_check_motor_status = STATUS_START_MOTORS;
         } else if (!(THROTTLE_STICK_DOWN() && YAW_STICK_PUSHED())) { // stick released too soon
+          printf("IN IF toosoon\n");
           autopilot_check_motor_status = STATUS_MOTORS_OFF;
         }
         break;
       case STATUS_START_MOTORS:
+//        printf("STATUS_START_MOTORS\n");
         autopilot_motors_on = TRUE;
         autopilot_motors_on_counter = MOTOR_ARMING_DELAY;
         if (!(THROTTLE_STICK_DOWN() && YAW_STICK_PUSHED())) { // wait until stick released
+          printf("IN IF wait till released \n");
           autopilot_check_motor_status = STATUS_MOTORS_ON;
         }
         break;
       case STATUS_MOTORS_ON:
+//        printf("STATUS_MOTORS_ON\n");
         autopilot_motors_on = TRUE;
         autopilot_motors_on_counter = MOTOR_ARMING_DELAY;
         if (THROTTLE_STICK_DOWN() && YAW_STICK_PUSHED()) { // stick pushed
+          printf("IN IF pushed 2\n");
           autopilot_check_motor_status = STATUS_M_ON_STICK_PUSHED;
         }
         break;
       case STATUS_M_ON_STICK_PUSHED:
+//        printf("STATUS_M_ON_STICK_PUSHED\n");
         autopilot_motors_on = TRUE;
         autopilot_motors_on_counter--;
         if (autopilot_motors_on_counter == 0) {
           autopilot_check_motor_status = STATUS_STOP_MOTORS;
         } else if (!(THROTTLE_STICK_DOWN() && YAW_STICK_PUSHED())) { // stick released too soon
+          printf("IN IF released too soon 2\n");
           autopilot_check_motor_status = STATUS_MOTORS_ON;
         }
         break;
       case STATUS_STOP_MOTORS:
+//        printf("STATUS_STOP_MOTORS\n");
         autopilot_motors_on = FALSE;
         autopilot_motors_on_counter = 0;
         if (!(THROTTLE_STICK_DOWN() && YAW_STICK_PUSHED())) { // wait until stick released
+          printf("IN IF wait \n");
           autopilot_check_motor_status = STATUS_MOTORS_OFF;
         }
         break;

@@ -188,19 +188,28 @@ void guidance_v_init(void)//TODO PORT
   gv_adapt_init();
 
 #if GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE
+  printf("GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE\n");
   guidance_v_module_init();
 #endif
 
 #if PERIODIC_TELEMETRY
+  printf("PERIODIC_TELEMETRY guidance_v\n");
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VERT_LOOP, send_vert_loop);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_TUNE_VERT, send_tune_vert);
 #endif
 }
 
+void juav_register_periodic_telemetry_send_vert_loop() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VERT_LOOP, send_vert_loop);
+}
+void juav_register_periodic_telemetry_send_tune_vert() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_TUNE_VERT, send_tune_vert);
+}
 
-void guidance_v_read_rc(void)
+
+void guidance_v_read_rc(void)//CHECKED equal
 {
-//  printf("guidance_v_read_rc\n");//TODO
+//  printf("guidance_v_read_rc\n");
   /* used in RC_DIRECT directly and as saturation in CLIMB and HOVER */
   guidance_v_rc_delta_t = (int32_t)radio_control.values[RADIO_THROTTLE];
 
@@ -218,52 +227,55 @@ void guidance_v_read_rc(void)
   } else {
     guidance_v_rc_zd_sp *= climb_scale;
   }
+
+//  printf("guidance_v_rc_delta_t = %d\n",guidance_v_rc_delta_t);
+//  printf("guidance_v_rc_zd_sp = %d\n",guidance_v_rc_zd_sp);
 }
 
 void guidance_v_mode_changed(uint8_t new_mode)
 {
-  printf("guidance_v_mode_changed\n");
-  if (new_mode == guidance_v_mode) {
-    printf("new_mode == guidance_v_mode\n");
-    return;
-  }
-
-  switch (new_mode) {
-//    case GUIDANCE_V_MODE_HOVER:
-//      printf("CASE GUIDANCE_V_MODE_HOVER\n");
-//    case GUIDANCE_V_MODE_GUIDED:
-//      printf("CASE GUIDANCE_V_MODE_GUIDED\n");
-//      guidance_v_z_sp = stateGetPositionNed_i()->z; // set current altitude as setpoint
+//  printf("guidance_v_mode_changed\n");
+//  if (new_mode == guidance_v_mode) {
+//    printf("new_mode == guidance_v_mode\n");
+//    return;
+//  }
+//
+//  switch (new_mode) {
+////    case GUIDANCE_V_MODE_HOVER:
+////      printf("CASE GUIDANCE_V_MODE_HOVER\n");
+////    case GUIDANCE_V_MODE_GUIDED:
+////      printf("CASE GUIDANCE_V_MODE_GUIDED\n");
+////      guidance_v_z_sp = stateGetPositionNed_i()->z; // set current altitude as setpoint
+////      guidance_v_z_sum_err = 0;
+////      GuidanceVSetRef(stateGetPositionNed_i()->z, 0, 0);
+////      break;
+////
+////    case GUIDANCE_V_MODE_RC_CLIMB:
+////      printf("CASE GUIDANCE_V_MODE_RC_CLIMB\n");
+////    case GUIDANCE_V_MODE_CLIMB:
+////      printf("CASE GUIDANCE_V_MODE_CLIMB\n");
+////      guidance_v_zd_sp = 0;
+//    case GUIDANCE_V_MODE_NAV:
+////      printf("CASE GUIDANCE_V_MODE_NAV\n");
 //      guidance_v_z_sum_err = 0;
-//      GuidanceVSetRef(stateGetPositionNed_i()->z, 0, 0);
+//      GuidanceVSetRef(stateGetPositionNed_i()->z, stateGetSpeedNed_i()->z, 0);
 //      break;
 //
-//    case GUIDANCE_V_MODE_RC_CLIMB:
-//      printf("CASE GUIDANCE_V_MODE_RC_CLIMB\n");
-//    case GUIDANCE_V_MODE_CLIMB:
-//      printf("CASE GUIDANCE_V_MODE_CLIMB\n");
-//      guidance_v_zd_sp = 0;
-    case GUIDANCE_V_MODE_NAV:
-//      printf("CASE GUIDANCE_V_MODE_NAV\n");
-      guidance_v_z_sum_err = 0;
-      GuidanceVSetRef(stateGetPositionNed_i()->z, stateGetSpeedNed_i()->z, 0);
-      break;
-
-//#if GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE
-//    case GUIDANCE_V_MODE_MODULE:
-//      printf("CASE GUIDANCE_V_MODE_MODULE\n");
-//      guidance_v_module_enter();
-//      break;
-//#endif
+////#if GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE
+////    case GUIDANCE_V_MODE_MODULE:
+////      printf("CASE GUIDANCE_V_MODE_MODULE\n");
+////      guidance_v_module_enter();
+////      break;
+////#endif
+////
+////    case GUIDANCE_V_MODE_FLIP:
+////      printf("CASE GUIDANCE_V_MODE_FLIP\n");
+////      break;
 //
-//    case GUIDANCE_V_MODE_FLIP:
-//      printf("CASE GUIDANCE_V_MODE_FLIP\n");
+//    default:
 //      break;
-
-    default:
-      break;
-
-  }
+//
+//  }
 
   guidance_v_mode = new_mode;
 
@@ -285,6 +297,7 @@ void guidance_v_run(bool_t in_flight)
   // FIXME... SATURATIONS NOT TAKEN INTO ACCOUNT
   // AKA SUPERVISION and co
   guidance_v_thrust_coeff = get_vertical_thrust_coeff();
+//  printf("guidance_v_thrust_coeff = %d\n",guidance_v_thrust_coeff);
   if (in_flight) {
     int32_t vertical_thrust = (stabilization_cmd[COMMAND_THRUST] * guidance_v_thrust_coeff) >> INT32_TRIG_FRAC;
     gv_adapt_run(stateGetAccelNed_i()->z, vertical_thrust, guidance_v_zd_ref);
@@ -298,10 +311,12 @@ void guidance_v_run(bool_t in_flight)
     case GUIDANCE_V_MODE_RC_DIRECT:
 //        printf("CASE GUIDANCE_V_MODE_RC_DIRECT\n");
       guidance_v_z_sp = stateGetPositionNed_i()->z; // for display only
+//          printf("guidance_v_z_sp = %d\n",guidance_v_z_sp);
       stabilization_cmd[COMMAND_THRUST] = guidance_v_rc_delta_t;
-      break;
+//          printf("guidance_v_rc_delta_t = %d\n",guidance_v_rc_delta_t);
+    break;
 
-//    case GUIDANCE_V_MODE_RC_CLIMB:
+//    case GUIDANCE_V_MODE_RC_CLIMB:guidance_v_z_sp
 //      printf("CASE GUIDANCE_V_MODE_RC_CLIMB\n");
 //      guidance_v_zd_sp = guidance_v_rc_zd_sp;
 //      gv_update_ref_from_zd_sp(guidance_v_zd_sp, stateGetPositionNed_i()->z);
@@ -372,6 +387,7 @@ void guidance_v_run(bool_t in_flight)
 //      printf("!NO_RC_THRUST_LIMIT\n");
       /* use rc limitation if available */
       if (radio_control.status == RC_OK) {
+//        printf("Min(guidance_v_rc_delta_t, guidance_v_delta_t) = %d\n",Min(guidance_v_rc_delta_t, guidance_v_delta_t));
         stabilization_cmd[COMMAND_THRUST] = Min(guidance_v_rc_delta_t, guidance_v_delta_t);
       } else
 #endif
@@ -411,6 +427,7 @@ static int32_t get_vertical_thrust_coeff(void)//TODO PORT
    *  dot(v1, v2) = v1.z * v2.z = v2.z
    */
   int32_t coef = att->m[8];
+//  printf("coef = %d\n",coef);
   if (coef < max_bank_coef) {
     coef = max_bank_coef;
   }
@@ -483,4 +500,12 @@ bool_t guidance_v_set_guided_z(float z)
 //    return TRUE;
 //  }
 //  return FALSE;
+}
+
+void juav_set_guidance_v_rc_delta_t(int newValue) {
+  guidance_v_rc_delta_t = newValue;
+}
+
+void juav_set_guidance_v_rc_zd_sp(int newValue) {
+  guidance_v_rc_zd_sp = newValue;
 }

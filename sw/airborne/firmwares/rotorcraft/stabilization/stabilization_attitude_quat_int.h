@@ -117,4 +117,9 @@ int get_stateGetBodyRates_i_r_juav();
 
 void set_stabilization_cmd(int yaw,int pitch, int roll);
 
+
+void juav_register_periodic_telemetry_send_att();
+void juav_register_periodic_telemetry_send_att_ref();
+void juav_register_periodic_telemetry_send_ahrs_ref_quat();
+
 #endif /* STABILIZATION_ATTITUDE_QUAT_INT_H */

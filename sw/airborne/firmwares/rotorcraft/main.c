@@ -247,6 +247,7 @@ STATIC_INLINE void handle_periodic_tasks(void)
   if (sys_time_check_and_ack_timer(modules_tid)) {
     modules_periodic_task();
   }
+
   if (sys_time_check_and_ack_timer(radio_control_tid)) {
     radio_control_periodic_task();
   }
@@ -331,12 +332,14 @@ STATIC_INLINE void failsafe_check(void)
       autopilot_mode != AP_MODE_HOME &&
       autopilot_mode != AP_MODE_FAILSAFE &&
       autopilot_mode != AP_MODE_NAV) {
+    printf("autopilot_set_mode(RC_LOST_MODE)\n");
     autopilot_set_mode(RC_LOST_MODE);
   }
 
 #if FAILSAFE_ON_BAT_CRITICAL
   if (autopilot_mode != AP_MODE_KILL &&
       electrical.bat_critical) {
+    printf("autopilot_set_mode(AP_MODE_FAILSAFE)\n");
     autopilot_set_mode(AP_MODE_FAILSAFE);
   }
 #endif
@@ -349,12 +352,14 @@ STATIC_INLINE void failsafe_check(void)
       radio_control.status != RC_OK &&
 #endif
       GpsIsLost()) {
+    printf("autopilot_set_mode(AP_MODE_FAILSAFE)\n");
     autopilot_set_mode(AP_MODE_FAILSAFE);
   }
 
   if (autopilot_mode == AP_MODE_HOME &&
       autopilot_motors_on && GpsIsLost()) {
     autopilot_set_mode(AP_MODE_FAILSAFE);
+    printf("autopilot_set_mode(AP_MODE_FAILSAFE)\n");
   }
 #endif
 
@@ -363,6 +368,8 @@ STATIC_INLINE void failsafe_check(void)
 
 STATIC_INLINE void main_event(void)
 {
+//  printf("main_event being called in main.c rotorcraft\n");
+
   /* event functions for mcu peripherals: i2c, usb_serial.. */
   mcu_event();
 
@@ -398,6 +405,44 @@ STATIC_INLINE void main_event(void)
 
 void main_event_juav() {
   main_event();
+}
+
+void main_event_juav_prior()
+{
+  /* event functions for mcu peripherals: i2c, usb_serial.. */
+  mcu_event();
+
+  DatalinkEvent();
+
+  if (autopilot_rc) {
+    RadioControlEvent(autopilot_on_rc_frame_juav);
+  }
+}
+
+void main_event_juav_post()
+{
+#if USE_IMU
+  ImuEvent();
+#endif
+
+#ifdef InsEvent
+  TODO("calling InsEvent, remove me..")
+  InsEvent();
+#endif
+
+#if USE_BARO_BOARD
+  BaroEvent();
+#endif
+
+#if USE_GPS
+  GpsEvent();
+#endif
+
+#if FAILSAFE_GROUND_DETECT || KILL_ON_GROUND_DETECT
+  DetectGroundEvent();
+#endif
+
+  modules_event_task();
 }
 
 void main_periodic_juav_autopilot_prior()

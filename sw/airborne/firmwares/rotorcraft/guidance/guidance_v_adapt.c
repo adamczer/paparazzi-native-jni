@@ -114,6 +114,8 @@ static const int32_t gv_adapt_X0 = BFP_OF_REAL(9.81, GV_ADAPT_X_FRAC) /
 
 void gv_adapt_init(void)
 {
+//  printf("gv_adapt_X0 = %d\n",gv_adapt_X0 );
+//  printf("gv_adapt_P0 = %d\n",gv_adapt_P0 );
   gv_adapt_X = gv_adapt_X0;
   gv_adapt_P = gv_adapt_P0;
 }
@@ -127,6 +129,7 @@ void gv_adapt_init(void)
  */
 void gv_adapt_run(int32_t zdd_meas, int32_t thrust_applied, int32_t zd_ref)
 {
+//  printf("gv_adapt_run\n");
 
   static const int32_t gv_adapt_min_cmd = GUIDANCE_V_ADAPT_MIN_CMD * MAX_PPRZ;
   static const int32_t gv_adapt_max_cmd = GUIDANCE_V_ADAPT_MAX_CMD * MAX_PPRZ;

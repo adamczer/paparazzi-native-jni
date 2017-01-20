@@ -31,6 +31,7 @@ struct RadioControl radio_control;
 
 void radio_control_init(void)
 {
+//  printf("radio_control_init\n");
   uint8_t i;
   for (i = 0; i < RADIO_CONTROL_NB_CHANNEL; i++) {
     radio_control.values[i] = 0;
@@ -45,6 +46,7 @@ void radio_control_init(void)
 
 void radio_control_periodic_task(void)
 {
+//  printf("radio_control_periodic_task\n");
   static uint8_t _1Hz;
   _1Hz++;
 
@@ -53,11 +55,13 @@ void radio_control_periodic_task(void)
     radio_control.frame_rate = radio_control.frame_cpt;
     radio_control.frame_cpt = 0;
   }
-
+//  printf("radio_control.time_since_last_frame = %d\n",radio_control.time_since_last_frame);
   if (radio_control.time_since_last_frame >= RC_REALLY_LOST_TIME) {
+//    printf("radio_control.time_since_last_frame >= RC_REALLY_LOST_TIME\n");
     radio_control.status = RC_REALLY_LOST;
   } else {
     if (radio_control.time_since_last_frame >= RC_LOST_TIME) {
+//      printf("radio_control.time_since_last_frame >= RC_LOST_TIME\n");
       radio_control.status = RC_LOST;
       radio_control.radio_ok_cpt = RC_OK_CPT;
     }

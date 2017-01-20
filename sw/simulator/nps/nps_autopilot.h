@@ -53,6 +53,8 @@ void npsMagFeedStepJuav();
 void npsGpsFeedStepJuav();
 void npsBaroFeedStepJuav();
 
+bool nps_autopilot_run_step_radio_juav_no_main_event(double time);
+
 
 #endif /* NPS_AUTOPILOT_H */
 

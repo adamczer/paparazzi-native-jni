@@ -502,7 +502,9 @@ float get_dist2_to_waypoint(uint8_t wp_id)
 void compute_dist2_to_home(void)
 {
   dist2_to_home = get_dist2_to_waypoint(WP_HOME);
+//  printf("dist2_to_home -> %d",dist2_to_home);
   too_far_from_home = dist2_to_home > max_dist2_from_home;
+//  printf("too_far_from_home -> %d",too_far_from_home);
 }
 
 /** Set nav_heading in degrees. */

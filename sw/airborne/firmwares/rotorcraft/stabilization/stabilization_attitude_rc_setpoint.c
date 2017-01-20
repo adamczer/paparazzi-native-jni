@@ -85,6 +85,7 @@ static int32_t get_rc_yaw(void)
 
 static float get_rc_roll_f(void)
 {
+//  printf("RADIO_ROLL = %d\n",RADIO_ROLL);
   int32_t roll = radio_control.values[RADIO_ROLL];
 #if STABILIZATION_ATTITUDE_DEADBAND_A
   DeadBand(roll, STABILIZATION_ATTITUDE_DEADBAND_A);
@@ -339,6 +340,7 @@ void stabilization_attitude_read_rc_roll_pitch_quat_f(struct FloatQuat *q)
   ov.x = get_rc_roll_f();
   ov.y = get_rc_pitch_f();
   ov.z = 0.0;
+//  printf("ov.x = %f\nov.x = %f\n",ov.x,ov.y);
 
   /* quaternion from that orientation vector */
   float_quat_of_orientation_vect(q, &ov);
