@@ -219,7 +219,7 @@ void nav_run(void)
 
 #if GUIDANCE_H_USE_REF
   // if GUIDANCE_H_USE_REF, CARROT_DIST is not used
-  VECT2_COPY(navigation_carrot, navigation_target);
+  VECT2_COPY(navigation_carrot, navigation_target); //juav
 #else
   nav_advance_carrot();
 #endif

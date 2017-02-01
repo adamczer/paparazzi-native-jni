@@ -361,7 +361,8 @@ void guidance_v_run(bool_t in_flight)
 //#endif
 
     case GUIDANCE_V_MODE_NAV:
-//      printf("CASE GUIDANCE_V_MODE_NAV\n");
+      printf("CASE GUIDANCE_V_MODE_NAV\n");
+//      printf("vertical_mode = %d\n",vertical_mode);
       {
       if (vertical_mode == VERTICAL_MODE_ALT) {
 //        printf("vertical_mode == VERTICAL_MODE_ALT\n");
@@ -370,13 +371,13 @@ void guidance_v_run(bool_t in_flight)
         gv_update_ref_from_z_sp(guidance_v_z_sp);
         run_hover_loop(in_flight);
       } else if (vertical_mode == VERTICAL_MODE_CLIMB) {
-//        printf("vertical_mode == VERTICAL_MODE_CLIMB\n");
+        printf("vertical_mode == VERTICAL_MODE_CLIMB\n");
         guidance_v_z_sp = stateGetPositionNed_i()->z;
         guidance_v_zd_sp = -nav_climb;
         gv_update_ref_from_zd_sp(guidance_v_zd_sp, stateGetPositionNed_i()->z);
         run_hover_loop(in_flight);
       } else if (vertical_mode == VERTICAL_MODE_MANUAL) {
-//        printf("vertical_mode == VERTICAL_MODE_MANUAL\n");
+        printf("vertical_mode == VERTICAL_MODE_MANUAL\n");
         guidance_v_z_sp = stateGetPositionNed_i()->z;
         guidance_v_zd_sp = stateGetSpeedNed_i()->z;
         GuidanceVSetRef(guidance_v_z_sp, guidance_v_zd_sp, 0);
@@ -387,7 +388,8 @@ void guidance_v_run(bool_t in_flight)
 //      printf("!NO_RC_THRUST_LIMIT\n");
       /* use rc limitation if available */
       if (radio_control.status == RC_OK) {
-//        printf("Min(guidance_v_rc_delta_t, guidance_v_delta_t) = %d\n",Min(guidance_v_rc_delta_t, guidance_v_delta_t));
+//        printf("guidance_v_rc_delta_t = %d\n",guidance_v_rc_delta_t);
+//        printf("guidance_v_delta_t = %d\n", guidance_v_delta_t);
         stabilization_cmd[COMMAND_THRUST] = Min(guidance_v_rc_delta_t, guidance_v_delta_t);
       } else
 #endif
@@ -412,6 +414,7 @@ static int32_t get_vertical_thrust_coeff(void)//TODO PORT
   static const int32_t max_bank_coef = BFP_OF_REAL(0.8660254f, INT32_TRIG_FRAC);
 
   struct Int32RMat *att = stateGetNedToBodyRMat_i();
+//  printf("att = \n%d,%d,%d\n%d,%d,%d\n%d,%d,%d\n",att[0],att[1],att[2],att[3],att[4],att[5],att[6],att[7],att[8]);
   /* thrust vector:
    *  int32_rmat_vmult(&thrust_vect, &att, &zaxis)
    * same as last colum of rmat with INT32_TRIG_FRAC

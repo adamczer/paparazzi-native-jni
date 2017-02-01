@@ -31,7 +31,9 @@ void nps_sensor_accel_run_step(struct NpsSensorAccel *accel, double time, struct
   }
   /* transform to imu frame */
   struct DoubleVect3 accelero_imu;
+//  printf("body_accel xyz= %f,%f,%f\n",fdm.body_accel.x,fdm.body_accel.y,fdm.body_accel.z);
   MAT33_VECT3_MUL(accelero_imu, *body_to_imu, fdm.body_accel);
+//  printf("body_to_imu = \n%f,%f,%f\n%f,%f,%f\n%f,%f,%f\n",body_to_imu[0],body_to_imu[1],body_to_imu[2],body_to_imu[3],body_to_imu[4],body_to_imu[5],body_to_imu[6],body_to_imu[7],body_to_imu[8]);
 
   /* compute accelero readings */
   MAT33_VECT3_MUL(accel->value, accel->sensitivity, accelero_imu);

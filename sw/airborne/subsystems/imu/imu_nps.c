@@ -45,7 +45,7 @@ void imu_feed_gyro_accel(void)
 {
 //  printf("sensors.gyro = %f,%f,%f\n",sensors.gyro.value.x,sensors.gyro.value.y,sensors.gyro.value.z);
   RATES_ASSIGN(imu.gyro_unscaled, sensors.gyro.value.x, sensors.gyro.value.y, sensors.gyro.value.z);
-//  printf("sensors.accel = %f,%f,%f\n",sensors.accel.value.x,sensors.accel.value.y,sensors.accel.value.z);
+  printf("sensors.accel = %f,%f,%f\n",sensors.accel.value.x,sensors.accel.value.y,sensors.accel.value.z);
   VECT3_ASSIGN(imu.accel_unscaled, sensors.accel.value.x, sensors.accel.value.y, sensors.accel.value.z);
 
   // set availability flags...

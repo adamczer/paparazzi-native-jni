@@ -436,7 +436,7 @@ void autopilot_periodic(void) //TODO Port
     SetCommands(commands_failsafe);
   } else {
     guidance_v_run(autopilot_in_flight);
-    guidance_h_run(autopilot_in_flight);
+//    guidance_h_run(autopilot_in_flight);
     SetRotorcraftCommands(stabilization_cmd, autopilot_in_flight, autopilot_motors_on);
   }
 
@@ -996,6 +996,7 @@ void juav_set_nav_heading(int new_heading) {
 }
 
 int juav_get_vertical_mode() {
+//  printf("vertical_mode = %d\n",vertical_mode);
   return vertical_mode;
 }
 
@@ -1054,4 +1055,134 @@ int juav_get_stabilization_cmd(int cmdIndex) {
 
 void juav_set_stabilization_cmd(int cmdIndex, int newValue) {
   stabilization_cmd[cmdIndex] = newValue;
+}
+
+///
+int juav_get_guidance_h_sp_pos_x() {
+  return guidance_h.sp.pos.x;
+}
+int juav_get_guidance_h_sp_pos_y() {
+  return guidance_h.sp.pos.y;
+}
+void juav_set_guidance_h_sp_pos_x(int x) {
+  guidance_h.sp.pos.x = x;
+}
+void juav_set_guidance_h_sp_pos_y(int y) {
+  guidance_h.sp.pos.y = y;
+}
+///
+int juav_get_guidance_h_sp_speed_x() {
+  return guidance_h.sp.speed.x;
+}
+int juav_get_guidance_h_sp_speed_y() {
+  return guidance_h.sp.speed.y;
+}
+//
+int juav_get_guidance_h_sp_heading() {
+  return guidance_h.sp.heading;
+}
+void juav_set_guidance_h_sp_heading(int newHeading) {
+  guidance_h.sp.heading = newHeading;
+}
+//
+int juav_get_guidance_h_ref_pos_x() {
+  return guidance_h.ref.pos.x;
+}
+int juav_get_guidance_h_ref_pos_y() {
+  return guidance_h.ref.pos.y;
+}
+void juav_set_guidance_h_ref_pos_x(int x) {
+  guidance_h.ref.pos.x = x;
+}
+void juav_set_guidance_h_ref_pos_y(int y) {
+  guidance_h.ref.pos.y = y;
+}
+//
+int juav_get_guidance_h_ref_speed_x() {
+  return guidance_h.ref.speed.x;
+}
+int juav_get_guidance_h_ref_speed_y() {
+  return guidance_h.ref.speed.y;
+}
+void juav_set_guidance_h_ref_speed_x(int x) {
+  guidance_h.ref.speed.x = x;
+}
+void juav_set_guidance_h_ref_speed_y(int y) {
+  guidance_h.ref.speed.y = y;
+}
+//
+int juav_get_guidance_h_ref_accel_x() {
+  return guidance_h.ref.accel.x;
+}
+int juav_get_guidance_h_ref_accel_y() {
+  return guidance_h.ref.accel.y;
+}
+void juav_set_guidance_h_ref_accel_x(int x) {
+  guidance_h.ref.accel.x = x;
+}
+void juav_set_guidance_h_ref_accel_y(int y) {
+  guidance_h.ref.accel.y = y;
+}
+//
+int juav_get_guidance_h_cmd_earth_x() {
+  return guidance_h_cmd_earth.x;
+}
+int juav_get_guidance_h_cmd_earth_y() {
+  return guidance_h_cmd_earth.y;
+}
+void juav_set_guidance_h_cmd_earth_x(int x) {
+  guidance_h_cmd_earth.x = x;
+}
+void juav_set_guidance_h_cmd_earth_y(int y) {
+  guidance_h_cmd_earth.y = y;
+}
+//
+int juav_get_stab_att_sp_quat_qi() {
+//  printf("juav_get_stab_att_sp_quat_qi = %d\n",juav_get_stab_att_sp_quat_qi);
+  return stab_att_sp_quat.qi;
+}
+int juav_get_stab_att_sp_quat_qx() {
+//  printf("juav_get_stab_att_sp_quat_qx = %d\n",juav_get_stab_att_sp_quat_qx);
+  return stab_att_sp_quat.qx;
+}
+int juav_get_stab_att_sp_quat_qy() {
+//  printf("juav_get_stab_att_sp_quat_qy = %d\n",juav_get_stab_att_sp_quat_qy);
+  return stab_att_sp_quat.qy;
+}
+int juav_get_stab_att_sp_quat_qz() {
+//  printf("juav_get_stab_att_sp_quat_qz = %d\n",juav_get_stab_att_sp_quat_qz);
+  return stab_att_sp_quat.qz;
+}
+//
+void juav_set_stab_att_sp_quat_qi(int qi) {
+  stab_att_sp_quat.qi = qi;
+}
+void juav_set_stab_att_sp_quat_qx(int qx) {
+  stab_att_sp_quat.qx = qx;
+}
+void juav_set_stab_att_sp_quat_qy(int qy) {
+  stab_att_sp_quat.qy = qy;
+}
+void juav_set_stab_att_sp_quat_qz(int qz) {
+  stab_att_sp_quat.qz = qz;
+}
+//
+
+int juav_get_stab_att_sp_euler_phi() {
+  return stab_att_sp_euler.phi;
+}
+int juav_get_stab_att_sp_euler_psi() {
+  return stab_att_sp_euler.psi;
+}
+int juav_get_stab_att_sp_euler_theta() {
+  return stab_att_sp_euler.theta;
+}
+void juav_set_stab_att_sp_euler_phi(int phi) {
+  stab_att_sp_euler.phi = phi;
+}
+void juav_set_stab_att_sp_euler_psi(int psi) {
+  stab_att_sp_euler.psi = psi;
+}
+void juav_set_stab_att_sp_euler_theta(int theta) {
+  stab_att_sp_euler.theta = theta;
 }

@@ -125,13 +125,14 @@ extern uint16_t autopilot_flight_time;
     commands[COMMAND_PITCH] = _cmd[COMMAND_PITCH];              \
     commands[COMMAND_YAW] = _cmd[COMMAND_YAW];                  \
     commands[COMMAND_THRUST] = _cmd[COMMAND_THRUST];            \
-printf("_in_flight = %d\n", _in_flight);\
-printf("_motor_on = %d\n", _motor_on);\
-printf("COMMAND_ROLL = %d\n", commands[COMMAND_ROLL]);\
-printf("COMMAND_PITCH = %d\n", commands[COMMAND_PITCH]);\
-printf("COMMAND_YAW = %d\n", commands[COMMAND_YAW]);\
-printf("COMMAND_THRUST = %d\n\n\n", commands[COMMAND_THRUST]);\
-  }
+}
+//printf("_in_flight = %d\n", _in_flight);\
+//printf("_motor_on = %d\n", _motor_on);\
+//printf("COMMAND_ROLL = %d\n", commands[COMMAND_ROLL]);\
+//printf("COMMAND_PITCH = %d\n", commands[COMMAND_PITCH]);\
+//printf("COMMAND_YAW = %d\n", commands[COMMAND_YAW]);\
+//printf("COMMAND_THRUST = %d\n\n\n", commands[COMMAND_THRUST]);\
+//  }
 #else
 #define SetRotorcraftCommands(_cmd, _in_flight,  _motor_on) { }
 #endif
@@ -257,6 +258,55 @@ int juav_get_autopilot_motors_on_counter();
 
 int juav_get_stabilization_cmd(int cmdIndex);
 void juav_set_stabilization_cmd(int cmdIndex, int newValue);
+
+int juav_get_guidance_h_sp_pos_x();
+int juav_get_guidance_h_sp_pos_y();
+void juav_set_guidance_h_sp_pos_x(int x);
+void juav_set_guidance_h_sp_pos_y(int y);
+
+int juav_get_guidance_h_sp_speed_x();
+int juav_get_guidance_h_sp_speed_y();
+
+int juav_get_guidance_h_ref_pos_x();
+int juav_get_guidance_h_ref_pos_y();
+void juav_set_guidance_h_ref_pos_x(int x);
+void juav_set_guidance_h_ref_pos_y(int y);
+
+int juav_get_guidance_h_ref_speed_x();
+int juav_get_guidance_h_ref_speed_y();
+void juav_set_guidance_h_ref_speed_x(int x);
+void juav_set_guidance_h_ref_speed_y(int y);
+
+int juav_get_guidance_h_ref_accel_x();
+int juav_get_guidance_h_ref_accel_y();
+void juav_set_guidance_h_ref_accel_x(int x);
+void juav_set_guidance_h_ref_accel_y(int y);
+
+int juav_get_guidance_h_sp_heading();
+void juav_set_guidance_h_sp_heading(int newHeading);
+
+int juav_get_guidance_h_cmd_earth_x();
+int juav_get_guidance_h_cmd_earth_y();
+void juav_set_guidance_h_cmd_earth_x(int x);
+void juav_set_guidance_h_cmd_earth_y(int y);
+
+
+int juav_get_stab_att_sp_quat_qi();
+int juav_get_stab_att_sp_quat_qx();
+int juav_get_stab_att_sp_quat_qy();
+int juav_get_stab_att_sp_quat_qz();
+void juav_set_stab_att_sp_quat_qi(int qi);
+void juav_set_stab_att_sp_quat_qx(int qx);
+void juav_set_stab_att_sp_quat_qy(int qy);
+void juav_set_stab_att_sp_quat_qz(int qz);
+
+int juav_get_stab_att_sp_euler_phi();
+int juav_get_stab_att_sp_euler_psi();
+int juav_get_stab_att_sp_euler_theta();
+void juav_set_stab_att_sp_euler_phi(int phi);
+void juav_set_stab_att_sp_euler_psi(int psi);
+void juav_set_stab_att_sp_euler_theta(int theta);
+
 
 
 #endif /* AUTOPILOT_H */

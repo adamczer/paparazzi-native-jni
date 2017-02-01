@@ -437,7 +437,7 @@ void guidance_h_run(bool_t  in_flight)
       if (!in_flight) {
         guidance_h_nav_enter();
       }
-
+//      printf("horizontal_mode == %d\n", horizontal_mode);
       if (horizontal_mode == HORIZONTAL_MODE_ATTITUDE) {
 //        printf("horizontal_mode == HORIZONTAL_MODE_ATTITUDE\n");
         struct Int32Eulers sp_cmd_i;
@@ -612,7 +612,9 @@ static void guidance_h_nav_enter(void) //TODO
 {
 //  printf("guidance_h_nav_enter\n");
   /* horizontal position setpoint from navigation/flightplan */
+//  printf("NavigationCarrot x,y,z = %d,%d,%d\n",navigation_carrot.x,navigation_carrot.y,navigation_carrot.z);
   INT32_VECT2_NED_OF_ENU(guidance_h.sp.pos, navigation_carrot);
+
 
   reset_guidance_reference_from_current_position();
 

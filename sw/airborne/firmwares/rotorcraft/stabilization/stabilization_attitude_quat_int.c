@@ -216,7 +216,12 @@ void stabilization_attitude_set_earth_cmd_i(struct Int32Vect2 *cmd, int32_t head
 
 static void attitude_run_ff(int32_t ff_commands[], struct Int32AttitudeGains *gains, struct Int32Rates *ref_accel)
 {
-//  printf("attitude_run_ff\n");
+//  printf("gains->dd.x = %d\n",gains->dd.x);
+//  printf("gains->dd.y = %d\n",gains->dd.y);
+//  printf("gains->dd.z = %d\n",gains->dd.z);
+//    printf("ref_accel->p = %d\n",ref_accel->p);
+//  printf("ref_accel->q = %d\n",ref_accel->q);
+//  printf("ref_accel->r = %d\n",ref_accel->r);
   /* Compute feedforward based on reference acceleration */
 
   ff_commands[COMMAND_ROLL]  = GAIN_PRESCALER_FF * gains->dd.x * RATE_FLOAT_OF_BFP(ref_accel->p) / (1 << 7);
@@ -256,6 +261,8 @@ void stabilization_attitude_run(bool_t enable_integrator)
    * PERIODIC_FREQUENCY is assumed to be 512Hz
    */
   static const float dt = (1./PERIODIC_FREQUENCY);
+//  printf("att_ref_quat_i->saturation->max_accel.p,q,r = %d,%d,%d\n",att_ref_quat_i.saturation.max_accel.p,att_ref_quat_i.saturation.max_accel.q,att_ref_quat_i.saturation.max_accel.r);
+//  printf("stab_att_sp_quat qi,qx,qy,qz = %d,%d,%d,%d\n",stab_att_sp_quat.qi,stab_att_sp_quat.qx,stab_att_sp_quat.qy,stab_att_sp_quat.qz);
   attitude_ref_quat_int_update(&att_ref_quat_i, &stab_att_sp_quat, dt);
   struct timespec t0;
   if(juavBenchmarkLogging)
@@ -268,6 +275,7 @@ void stabilization_attitude_run(bool_t enable_integrator)
   /* attitude error                          */
   struct Int32Quat att_err;
   struct Int32Quat *att_quat = stateGetNedToBodyQuat_i();
+//  printf("att_quat qz,qy,qi,qx = %d,%d,%d,%d\n",att_quat->qz,att_quat->qy,att_quat->qi,att_quat->qx);
   INT32_QUAT_INV_COMP(att_err, *att_quat, att_ref_quat_i.quat);
   /* wrap it in the shortest direction       */
   int32_quat_wrap_shortest(&att_err);
@@ -299,6 +307,8 @@ void stabilization_attitude_run(bool_t enable_integrator)
 
   /* compute the feed forward command */
   attitude_run_ff(stabilization_att_ff_cmd, &stabilization_gains, &att_ref_quat_i.accel);
+//  printf("stabilization_att_ff_cmd roll,pitch,yaw = %d,%d,%d\n",stabilization_att_ff_cmd[COMMAND_ROLL],stabilization_att_ff_cmd[COMMAND_PITCH],stabilization_att_ff_cmd[COMMAND_YAW]);
+//  printf("att_ref_quat_i.accel p,q,r = %d,%d,%d\n",att_ref_quat_i.accel.p,att_ref_quat_i.accel.q,att_ref_quat_i.accel.r);
 
   /* compute the feed back command */
   attitude_run_fb(stabilization_att_fb_cmd, &stabilization_gains, &att_err, &rate_err, &stabilization_att_sum_err_quat);
@@ -312,6 +322,8 @@ void stabilization_attitude_run(bool_t enable_integrator)
   BoundAbs(stabilization_cmd[COMMAND_ROLL], MAX_PPRZ);
   BoundAbs(stabilization_cmd[COMMAND_PITCH], MAX_PPRZ);
   BoundAbs(stabilization_cmd[COMMAND_YAW], MAX_PPRZ);
+
+//  printf("stabilization_cmd roll,pitch,yaw = %d,%d,%d\n",stabilization_cmd[COMMAND_ROLL],stabilization_cmd[COMMAND_PITCH],stabilization_cmd[COMMAND_YAW]);
 
 
   if(juavBenchmarkLogging) {
@@ -327,7 +339,7 @@ void stabilization_attitude_run(bool_t enable_integrator)
 //TODO PORT THIS
 void stabilization_attitude_read_rc(bool_t in_flight, bool_t in_carefree, bool_t coordinated_turn)
 {
-//  printf("stabilization_attitude_read_rc\n");
+  printf("stabilization_attitude_read_rc\n");
   struct FloatQuat q_sp;
 #if USE_EARTH_BOUND_RC_SETPOINT
     printf("USE_EARTH_BOUND_RC_SETPOINT\n");
@@ -336,6 +348,7 @@ void stabilization_attitude_read_rc(bool_t in_flight, bool_t in_carefree, bool_t
 //    printf("USE_EARTH_BOUND_RC_SETPOINT ELSE\n");
   stabilization_attitude_read_rc_setpoint_quat_f(&q_sp, in_flight, in_carefree, coordinated_turn);
 #endif
+//  printf("stab_att_sp_quat qi,qx,qy,qz = %d,%d,%d,%d\n",stab_att_sp_quat.qi,stab_att_sp_quat.qx,stab_att_sp_quat.qy,stab_att_sp_quat.qz);
   QUAT_BFP_OF_REAL(stab_att_sp_quat, q_sp);
 }
 

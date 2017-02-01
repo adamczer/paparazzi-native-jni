@@ -162,4 +162,7 @@ void juav_register_periodic_telemetry_send_href();
 void juav_register_periodic_telemetry_send_tune_hover();
 
 
+struct Int32Vect2  guidance_h_cmd_earth;
+
+
 #endif /* GUIDANCE_H_H */
