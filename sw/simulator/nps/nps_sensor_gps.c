@@ -93,5 +93,7 @@ void nps_sensor_gps_run_step(struct NpsSensorGps *gps, double time)
   gps->next_update += NPS_GPS_DT;
   gps->data_available = TRUE;
 
-}
 
+
+
+}

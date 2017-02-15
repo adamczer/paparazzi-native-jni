@@ -171,7 +171,7 @@ static void send_tune_vert(struct transport_tx *trans, struct link_device *dev)
 }
 #endif
 
-void guidance_v_init(void)
+void guidance_v_init(void)//TODO PORT
 {
 
   guidance_v_mode = GUIDANCE_V_MODE_KILL;
@@ -188,19 +188,28 @@ void guidance_v_init(void)
   gv_adapt_init();
 
 #if GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE
+  printf("GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE\n");
   guidance_v_module_init();
 #endif
 
 #if PERIODIC_TELEMETRY
+  printf("PERIODIC_TELEMETRY guidance_v\n");
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VERT_LOOP, send_vert_loop);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_TUNE_VERT, send_tune_vert);
 #endif
 }
 
+void juav_register_periodic_telemetry_send_vert_loop() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VERT_LOOP, send_vert_loop);
+}
+void juav_register_periodic_telemetry_send_tune_vert() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_TUNE_VERT, send_tune_vert);
+}
 
-void guidance_v_read_rc(void)
+
+void guidance_v_read_rc(void)//CHECKED equal
 {
-
+//  printf("guidance_v_read_rc\n");
   /* used in RC_DIRECT directly and as saturation in CLIMB and HOVER */
   guidance_v_rc_delta_t = (int32_t)radio_control.values[RADIO_THROTTLE];
 
@@ -218,65 +227,80 @@ void guidance_v_read_rc(void)
   } else {
     guidance_v_rc_zd_sp *= climb_scale;
   }
+
+//  printf("guidance_v_rc_delta_t = %d\n",guidance_v_rc_delta_t);
+//  printf("guidance_v_rc_zd_sp = %d\n",guidance_v_rc_zd_sp);
 }
 
 void guidance_v_mode_changed(uint8_t new_mode)
 {
-
-  if (new_mode == guidance_v_mode) {
-    return;
-  }
-
-  switch (new_mode) {
-    case GUIDANCE_V_MODE_HOVER:
-    case GUIDANCE_V_MODE_GUIDED:
-      guidance_v_z_sp = stateGetPositionNed_i()->z; // set current altitude as setpoint
-      guidance_v_z_sum_err = 0;
-      GuidanceVSetRef(stateGetPositionNed_i()->z, 0, 0);
-      break;
-
-    case GUIDANCE_V_MODE_RC_CLIMB:
-    case GUIDANCE_V_MODE_CLIMB:
-      guidance_v_zd_sp = 0;
-    case GUIDANCE_V_MODE_NAV:
-      guidance_v_z_sum_err = 0;
-      GuidanceVSetRef(stateGetPositionNed_i()->z, stateGetSpeedNed_i()->z, 0);
-      break;
-
-#if GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE
-    case GUIDANCE_V_MODE_MODULE:
-      guidance_v_module_enter();
-      break;
-#endif
-
-    case GUIDANCE_V_MODE_FLIP:
-      break;
-
-    default:
-      break;
-
-  }
+//  printf("guidance_v_mode_changed\n");
+//  if (new_mode == guidance_v_mode) {
+//    printf("new_mode == guidance_v_mode\n");
+//    return;
+//  }
+//
+//  switch (new_mode) {
+////    case GUIDANCE_V_MODE_HOVER:
+////      printf("CASE GUIDANCE_V_MODE_HOVER\n");
+////    case GUIDANCE_V_MODE_GUIDED:
+////      printf("CASE GUIDANCE_V_MODE_GUIDED\n");
+////      guidance_v_z_sp = stateGetPositionNed_i()->z; // set current altitude as setpoint
+////      guidance_v_z_sum_err = 0;
+////      GuidanceVSetRef(stateGetPositionNed_i()->z, 0, 0);
+////      break;
+////
+////    case GUIDANCE_V_MODE_RC_CLIMB:
+////      printf("CASE GUIDANCE_V_MODE_RC_CLIMB\n");
+////    case GUIDANCE_V_MODE_CLIMB:
+////      printf("CASE GUIDANCE_V_MODE_CLIMB\n");
+////      guidance_v_zd_sp = 0;
+//    case GUIDANCE_V_MODE_NAV:
+////      printf("CASE GUIDANCE_V_MODE_NAV\n");
+//      guidance_v_z_sum_err = 0;
+//      GuidanceVSetRef(stateGetPositionNed_i()->z, stateGetSpeedNed_i()->z, 0);
+//      break;
+//
+////#if GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE
+////    case GUIDANCE_V_MODE_MODULE:
+////      printf("CASE GUIDANCE_V_MODE_MODULE\n");
+////      guidance_v_module_enter();
+////      break;
+////#endif
+////
+////    case GUIDANCE_V_MODE_FLIP:
+////      printf("CASE GUIDANCE_V_MODE_FLIP\n");
+////      break;
+//
+//    default:
+//      break;
+//
+//  }
 
   guidance_v_mode = new_mode;
 
 }
 
 void guidance_v_notify_in_flight(bool_t in_flight)
-{
-  if (in_flight) {
-    gv_adapt_init();
-  }
+{//DEAD
+//  printf("guidance_v_notify_in_flight\n");
+//  if (in_flight) {
+//    gv_adapt_init();
+//  }
 }
 
 
 void guidance_v_run(bool_t in_flight)
 {
+//  printf("guidance_v_run\n");//TODO
 
   // FIXME... SATURATIONS NOT TAKEN INTO ACCOUNT
   // AKA SUPERVISION and co
   guidance_v_thrust_coeff = get_vertical_thrust_coeff();
+//  printf("guidance_v_thrust_coeff = %d\n",guidance_v_thrust_coeff);
   if (in_flight) {
     int32_t vertical_thrust = (stabilization_cmd[COMMAND_THRUST] * guidance_v_thrust_coeff) >> INT32_TRIG_FRAC;
+//    printf("vertical_thrust = %d\n",vertical_thrust);
     gv_adapt_run(stateGetAccelNed_i()->z, vertical_thrust, guidance_v_zd_ref);
   } else {
     /* reset estimate while not in_flight */
@@ -286,61 +310,77 @@ void guidance_v_run(bool_t in_flight)
   switch (guidance_v_mode) {
 
     case GUIDANCE_V_MODE_RC_DIRECT:
+//        printf("CASE GUIDANCE_V_MODE_RC_DIRECT\n");
       guidance_v_z_sp = stateGetPositionNed_i()->z; // for display only
+//          printf("guidance_v_z_sp = %d\n",guidance_v_z_sp);
       stabilization_cmd[COMMAND_THRUST] = guidance_v_rc_delta_t;
-      break;
+//          printf("guidance_v_rc_delta_t = %d\n",guidance_v_rc_delta_t);
+    break;
 
-    case GUIDANCE_V_MODE_RC_CLIMB:
-      guidance_v_zd_sp = guidance_v_rc_zd_sp;
-      gv_update_ref_from_zd_sp(guidance_v_zd_sp, stateGetPositionNed_i()->z);
-      run_hover_loop(in_flight);
-      stabilization_cmd[COMMAND_THRUST] = guidance_v_delta_t;
-      break;
+//    case GUIDANCE_V_MODE_RC_CLIMB:guidance_v_z_sp
+//      printf("CASE GUIDANCE_V_MODE_RC_CLIMB\n");
+//      guidance_v_zd_sp = guidance_v_rc_zd_sp;
+//      gv_update_ref_from_zd_sp(guidance_v_zd_sp, stateGetPositionNed_i()->z);
+//      run_hover_loop(in_flight);
+//      stabilization_cmd[COMMAND_THRUST] = guidance_v_delta_t;
+//      break;
 
-    case GUIDANCE_V_MODE_CLIMB:
-      gv_update_ref_from_zd_sp(guidance_v_zd_sp, stateGetPositionNed_i()->z);
-      run_hover_loop(in_flight);
-#if !NO_RC_THRUST_LIMIT
-      /* use rc limitation if available */
-      if (radio_control.status == RC_OK) {
-        stabilization_cmd[COMMAND_THRUST] = Min(guidance_v_rc_delta_t, guidance_v_delta_t);
-      } else
-#endif
-        stabilization_cmd[COMMAND_THRUST] = guidance_v_delta_t;
-      break;
+//    case GUIDANCE_V_MODE_CLIMB:
+//      printf("CASE GUIDANCE_V_MODE_CLIMB\n");
+//      gv_update_ref_from_zd_sp(guidance_v_zd_sp, stateGetPositionNed_i()->z);
+//      run_hover_loop(in_flight);
+//#if !NO_RC_THRUST_LIMIT
+//      /* use rc limitation if available */
+//      if (radio_control.status == RC_OK) {
+//        stabilization_cmd[COMMAND_THRUST] = Min(guidance_v_rc_delta_t, guidance_v_delta_t);
+//      } else
+//#endif
+//        stabilization_cmd[COMMAND_THRUST] = guidance_v_delta_t;
+//      break;
 
-    case GUIDANCE_V_MODE_HOVER:
-    case GUIDANCE_V_MODE_GUIDED:
-      guidance_v_zd_sp = 0;
-      gv_update_ref_from_z_sp(guidance_v_z_sp);
-      run_hover_loop(in_flight);
-#if !NO_RC_THRUST_LIMIT
-      /* use rc limitation if available */
-      if (radio_control.status == RC_OK) {
-        stabilization_cmd[COMMAND_THRUST] = Min(guidance_v_rc_delta_t, guidance_v_delta_t);
-      } else
-#endif
-        stabilization_cmd[COMMAND_THRUST] = guidance_v_delta_t;
-      break;
+//    case GUIDANCE_V_MODE_HOVER:
+//      printf("CASE GUIDANCE_V_MODE_HOVER\n");
+//    case GUIDANCE_V_MODE_GUIDED:
+//      printf("CASE GUIDANCE_V_MODE_GUIDED\n");
+//      guidance_v_zd_sp = 0;
+//      gv_update_ref_from_z_sp(guidance_v_z_sp);
+//      run_hover_loop(in_flight);
+//#if !NO_RC_THRUST_LIMIT
+//      /* use rc limitation if available */
+//      if (radio_control.status == RC_OK) {
+//        stabilization_cmd[COMMAND_THRUST] = Min(guidance_v_rc_delta_t, guidance_v_delta_t);
+//      } else
+//#endif
+//        stabilization_cmd[COMMAND_THRUST] = guidance_v_delta_t;
+//      break;
+//
+//#if GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE
+//    case GUIDANCE_V_MODE_MODULE:
+//      printf("CASE GUIDANCE_V_MODE_MODULE\n");
+//      guidance_v_module_run(in_flight);
+//      break;
+//#endif
 
-#if GUIDANCE_V_MODE_MODULE_SETTING == GUIDANCE_V_MODE_MODULE
-    case GUIDANCE_V_MODE_MODULE:
-      guidance_v_module_run(in_flight);
-      break;
-#endif
-
-    case GUIDANCE_V_MODE_NAV: {
+    case GUIDANCE_V_MODE_NAV:
+//      printf("CASE GUIDANCE_V_MODE_NAV\n");
+//      printf("vertical_mode = %d\n",vertical_mode);
+      {
       if (vertical_mode == VERTICAL_MODE_ALT) {
+//        printf("vertical_mode == VERTICAL_MODE_ALT\n");
         guidance_v_z_sp = -nav_flight_altitude;
         guidance_v_zd_sp = 0;
         gv_update_ref_from_z_sp(guidance_v_z_sp);
         run_hover_loop(in_flight);
       } else if (vertical_mode == VERTICAL_MODE_CLIMB) {
+//        printf("vertical_mode == VERTICAL_MODE_CLIMB\n");
         guidance_v_z_sp = stateGetPositionNed_i()->z;
+//        printf("guidance_v_z_sp = %d\n",guidance_v_z_sp);
         guidance_v_zd_sp = -nav_climb;
+//        printf("guidance_v_zd_sp = %d\n",guidance_v_zd_sp);
         gv_update_ref_from_zd_sp(guidance_v_zd_sp, stateGetPositionNed_i()->z);
         run_hover_loop(in_flight);
       } else if (vertical_mode == VERTICAL_MODE_MANUAL) {
+//        printf("vertical_mode == VERTICAL_MODE_MANUAL\n");
         guidance_v_z_sp = stateGetPositionNed_i()->z;
         guidance_v_zd_sp = stateGetSpeedNed_i()->z;
         GuidanceVSetRef(guidance_v_z_sp, guidance_v_zd_sp, 0);
@@ -348,17 +388,25 @@ void guidance_v_run(bool_t in_flight)
         guidance_v_delta_t = nav_throttle;
       }
 #if !NO_RC_THRUST_LIMIT
+//      printf("!NO_RC_THRUST_LIMIT\n");
       /* use rc limitation if available */
       if (radio_control.status == RC_OK) {
+//        printf("guidance_v_rc_delta_t = %d\n",guidance_v_rc_delta_t);
+//        printf("guidance_v_delta_t = %d\n", guidance_v_delta_t);
         stabilization_cmd[COMMAND_THRUST] = Min(guidance_v_rc_delta_t, guidance_v_delta_t);
-      } else
+//        printf("RC OK Command thrust = %d\n",stabilization_cmd[COMMAND_THRUST]);
+      } else {
 #endif
         stabilization_cmd[COMMAND_THRUST] = guidance_v_delta_t;
+
+//        printf("NOT RC OK Command thrust = %d\n",stabilization_cmd[COMMAND_THRUST]);
+      }
       break;
     }
 
-    case GUIDANCE_V_MODE_FLIP:
-      break;
+//    case GUIDANCE_V_MODE_FLIP:
+//      printf("CASE GUIDANCE_V_MODE_FLIP\n");
+//      break;
 
     default:
       break;
@@ -366,12 +414,14 @@ void guidance_v_run(bool_t in_flight)
 }
 
 /// get the cosine of the angle between thrust vector and gravity vector
-static int32_t get_vertical_thrust_coeff(void)
+static int32_t get_vertical_thrust_coeff(void)//TODO PORT
 {
+//  printf("get_vertical_thrust_coeff\n");
   // cos(30°) = 0.8660254
   static const int32_t max_bank_coef = BFP_OF_REAL(0.8660254f, INT32_TRIG_FRAC);
 
   struct Int32RMat *att = stateGetNedToBodyRMat_i();
+//  printf("att = \n%d,%d,%d\n%d,%d,%d\n%d,%d,%d\n",att[0],att[1],att[2],att[3],att[4],att[5],att[6],att[7],att[8]);
   /* thrust vector:
    *  int32_rmat_vmult(&thrust_vect, &att, &zaxis)
    * same as last colum of rmat with INT32_TRIG_FRAC
@@ -387,6 +437,7 @@ static int32_t get_vertical_thrust_coeff(void)
    *  dot(v1, v2) = v1.z * v2.z = v2.z
    */
   int32_t coef = att->m[8];
+//  printf("coef = %d\n",coef);
   if (coef < max_bank_coef) {
     coef = max_bank_coef;
   }
@@ -396,14 +447,17 @@ static int32_t get_vertical_thrust_coeff(void)
 
 #define FF_CMD_FRAC 18
 
-static void run_hover_loop(bool_t in_flight)
+static void run_hover_loop(bool_t in_flight)//TODO PORT
 {
+//  printf("run_hover_loop\n");
 
   /* convert our reference to generic representation */
+//  printf("gv_z_ref = %d\n", gv_z_ref);
   int64_t tmp  = gv_z_ref >> (GV_Z_REF_FRAC - INT32_POS_FRAC);
   guidance_v_z_ref = (int32_t)tmp;
   guidance_v_zd_ref = gv_zd_ref << (INT32_SPEED_FRAC - GV_ZD_REF_FRAC);
   guidance_v_zdd_ref = gv_zdd_ref << (INT32_ACCEL_FRAC - GV_ZDD_REF_FRAC);
+//  printf("guidance_v_z_ref = %d\n",guidance_v_z_ref);
   /* compute the error to our reference */
   int32_t err_z  = guidance_v_z_ref - stateGetPositionNed_i()->z;
   Bound(err_z, GUIDANCE_V_MIN_ERR_Z, GUIDANCE_V_MAX_ERR_Z);
@@ -447,14 +501,24 @@ static void run_hover_loop(bool_t in_flight)
 
   /* bound the result */
   Bound(guidance_v_delta_t, 0, MAX_PPRZ);
+//  printf("guidance_v_delta_t = %d\n",guidance_v_delta_t);
 
 }
 
 bool_t guidance_v_set_guided_z(float z)
-{
-  if (guidance_v_mode == GUIDANCE_V_MODE_GUIDED) {
-    guidance_v_z_sp = POS_BFP_OF_REAL(z);
-    return TRUE;
-  }
-  return FALSE;
+{//DEAD
+//  printf("guidance_v_set_guided_z\n");
+//  if (guidance_v_mode == GUIDANCE_V_MODE_GUIDED) {
+//    guidance_v_z_sp = POS_BFP_OF_REAL(z);
+//    return TRUE;
+//  }
+//  return FALSE;
+}
+
+void juav_set_guidance_v_rc_delta_t(int newValue) {
+  guidance_v_rc_delta_t = newValue;
+}
+
+void juav_set_guidance_v_rc_zd_sp(int newValue) {
+  guidance_v_rc_zd_sp = newValue;
 }

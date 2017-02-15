@@ -97,6 +97,7 @@ struct Int32Rates stabilization_rate_fb_cmd;
 
 static void send_rate(struct transport_tx *trans, struct link_device *dev)
 {
+  printf("send_rate in stabilization rate\n");
   pprz_msg_send_RATE_LOOP(trans, dev, AC_ID,
                           &stabilization_rate_sp.p,
                           &stabilization_rate_sp.q,
@@ -128,8 +129,13 @@ void stabilization_rate_init(void)
   INT_RATES_ZERO(stabilization_rate_sum_err);
 
 #if PERIODIC_TELEMETRY
+//  printf("register_periodic_telemetry\n");//USED
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_RATE_LOOP, send_rate);
 #endif
+}
+
+void juav_register_periodic_telemetry_send_rate() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_RATE_LOOP, send_rate);
 }
 
 

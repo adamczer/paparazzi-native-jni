@@ -240,12 +240,14 @@ STATIC_INLINE void main_init(void)
 
 STATIC_INLINE void handle_periodic_tasks(void)
 {
+//  printf("handle_periodic_tasks\n");
   if (sys_time_check_and_ack_timer(main_periodic_tid)) {
     main_periodic();
   }
   if (sys_time_check_and_ack_timer(modules_tid)) {
     modules_periodic_task();
   }
+
   if (sys_time_check_and_ack_timer(radio_control_tid)) {
     radio_control_periodic_task();
   }
@@ -267,7 +269,7 @@ STATIC_INLINE void handle_periodic_tasks(void)
 
 STATIC_INLINE void main_periodic(void)
 {
-
+//printf("main_periodic\n");
 #if USE_IMU
   imu_periodic();
 #endif
@@ -278,6 +280,7 @@ STATIC_INLINE void main_periodic(void)
 #endif
 
   /* run control loops */
+//  printf("autipilot periodic\n");
   autopilot_periodic();
   /* set actuators     */
   //actuators_set(autopilot_motors_on);
@@ -329,12 +332,14 @@ STATIC_INLINE void failsafe_check(void)
       autopilot_mode != AP_MODE_HOME &&
       autopilot_mode != AP_MODE_FAILSAFE &&
       autopilot_mode != AP_MODE_NAV) {
+    printf("autopilot_set_mode(RC_LOST_MODE)\n");
     autopilot_set_mode(RC_LOST_MODE);
   }
 
 #if FAILSAFE_ON_BAT_CRITICAL
   if (autopilot_mode != AP_MODE_KILL &&
       electrical.bat_critical) {
+    printf("autopilot_set_mode(AP_MODE_FAILSAFE)\n");
     autopilot_set_mode(AP_MODE_FAILSAFE);
   }
 #endif
@@ -347,12 +352,14 @@ STATIC_INLINE void failsafe_check(void)
       radio_control.status != RC_OK &&
 #endif
       GpsIsLost()) {
+    printf("autopilot_set_mode(AP_MODE_FAILSAFE)\n");
     autopilot_set_mode(AP_MODE_FAILSAFE);
   }
 
   if (autopilot_mode == AP_MODE_HOME &&
       autopilot_motors_on && GpsIsLost()) {
     autopilot_set_mode(AP_MODE_FAILSAFE);
+    printf("autopilot_set_mode(AP_MODE_FAILSAFE)\n");
   }
 #endif
 
@@ -361,6 +368,8 @@ STATIC_INLINE void failsafe_check(void)
 
 STATIC_INLINE void main_event(void)
 {
+//  printf("main_event being called in main.c rotorcraft\n");
+
   /* event functions for mcu peripherals: i2c, usb_serial.. */
   mcu_event();
 
@@ -392,4 +401,123 @@ STATIC_INLINE void main_event(void)
 #endif
 
   modules_event_task();
+}
+
+void main_event_juav() {
+  main_event();
+}
+
+void main_event_juav_prior()
+{
+  /* event functions for mcu peripherals: i2c, usb_serial.. */
+  mcu_event();
+
+  DatalinkEvent();
+
+  if (autopilot_rc) {
+    RadioControlEvent(autopilot_on_rc_frame_juav);
+//    RadioControlEvent(autopilot_on_rc_frame);
+  }
+}
+
+void main_event_juav_post()
+{
+#if USE_IMU
+  ImuEvent();
+#endif
+
+#ifdef InsEvent
+  TODO("calling InsEvent, remove me..")
+  InsEvent();
+#endif
+
+#if USE_BARO_BOARD
+  BaroEvent();
+#endif
+
+#if USE_GPS
+  GpsEvent();
+#endif
+
+#if FAILSAFE_GROUND_DETECT || KILL_ON_GROUND_DETECT
+  DetectGroundEvent();
+#endif
+
+  modules_event_task();
+}
+
+void main_periodic_juav_autopilot_prior()
+{
+
+#if USE_IMU
+  imu_periodic();
+#endif
+
+  //FIXME: temporary hack, remove me
+#ifdef InsPeriodic
+  InsPeriodic();
+#endif
+
+  /* run control loops */
+}
+
+void main_periodic_juav_autopilot_post() {
+  /* set actuators     */
+  //actuators_set(autopilot_motors_on);
+#ifndef INTER_MCU_AP
+  SetActuatorsFromCommands(commands, autopilot_mode);
+#else
+  intermcu_set_actuators(commands, autopilot_mode);
+#endif
+
+  if (autopilot_in_flight) {
+    RunOnceEvery(PERIODIC_FREQUENCY, autopilot_flight_time++);
+  }
+
+#if defined DATALINK || defined SITL
+  RunOnceEvery(PERIODIC_FREQUENCY, datalink_time++);
+#endif
+
+  RunOnceEvery(10, LED_PERIODIC());
+}
+
+void handle_periodic_tasks_following_main_periodic_juav()
+{
+  //Call sys_time_check_and_ack_timer_main_periodic_juav() to do check
+  //  if (sys_time_check_and_ack_timer(main_periodic_tid)) {
+//    main_periodic();
+//  }
+  if (sys_time_check_and_ack_timer(modules_tid)) {
+    modules_periodic_task();
+  }
+  if (sys_time_check_and_ack_timer(radio_control_tid)) {
+    radio_control_periodic_task();
+  }
+  if (sys_time_check_and_ack_timer(failsafe_tid)) {
+    failsafe_check();
+  }
+  if (sys_time_check_and_ack_timer(electrical_tid)) {
+    electrical_periodic();
+  }
+  if (sys_time_check_and_ack_timer(telemetry_tid)) {
+    telemetry_periodic();
+  }
+#if USE_BARO_BOARD
+  if (sys_time_check_and_ack_timer(baro_tid)) {
+    baro_periodic();
+  }
+#endif
+}
+
+bool sys_time_check_and_ack_timer_main_periodic_juav() {
+  return sys_time_check_and_ack_timer(main_periodic_tid);
+//  if (sys_time_check_and_ack_timer(main_periodic_tid)) {
+//    main_periodic();
+//  }
+}
+
+void main_periodic_juav_test() {
+    if (sys_time_check_and_ack_timer(main_periodic_tid)) {
+    main_periodic();
+  }
 }

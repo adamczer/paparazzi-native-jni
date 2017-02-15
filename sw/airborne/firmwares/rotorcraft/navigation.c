@@ -219,7 +219,7 @@ void nav_run(void)
 
 #if GUIDANCE_H_USE_REF
   // if GUIDANCE_H_USE_REF, CARROT_DIST is not used
-  VECT2_COPY(navigation_carrot, navigation_target);
+  VECT2_COPY(navigation_carrot, navigation_target); //juav
 #else
   nav_advance_carrot();
 #endif
@@ -502,7 +502,9 @@ float get_dist2_to_waypoint(uint8_t wp_id)
 void compute_dist2_to_home(void)
 {
   dist2_to_home = get_dist2_to_waypoint(WP_HOME);
+//  printf("dist2_to_home -> %d",dist2_to_home);
   too_far_from_home = dist2_to_home > max_dist2_from_home;
+//  printf("too_far_from_home -> %d",too_far_from_home);
 }
 
 /** Set nav_heading in degrees. */

@@ -99,8 +99,9 @@ bool_t   autopilot_detect_ground_once;
 #endif
 
 #ifndef AUTOPILOT_DISABLE_AHRS_KILL
-static inline int ahrs_is_aligned(void)
+static inline int ahrs_is_aligned(void) //TODO PORT
 {
+//  printf("ahrs_is_aligned\n");
   return stateIsAttitudeValid();
 }
 #else
@@ -124,9 +125,11 @@ PRINT_CONFIG_VAR(FAILSAFE_DESCENT_SPEED)
 
 
 #if USE_KILL_SWITCH_FOR_MOTOR_ARMING
+printf("USE_KILL_SWITCH_FOR_MOTOR_ARMING\n");
 #include "autopilot_arming_switch.h"
 PRINT_CONFIG_MSG("Using kill switch for motor arming")
 #elif USE_THROTTLE_FOR_MOTOR_ARMING
+printf("USE_THROTTLE_FOR_MOTOR_ARMING\n");
 #include "autopilot_arming_throttle.h"
 PRINT_CONFIG_MSG("Using throttle for motor arming")
 #else
@@ -157,6 +160,7 @@ PRINT_CONFIG_MSG("Enabled UNLOCKED_HOME_MODE since MODE_AUTO2 is AP_MODE_HOME")
 
 void send_autopilot_version(struct transport_tx *trans, struct link_device *dev)
 {
+  printf("send_autopilot_version\n");
   static uint32_t ap_version = PPRZ_VERSION_INT;
   static char *ver_desc = PPRZ_VERSION_DESC;
   pprz_msg_send_AUTOPILOT_VERSION(trans, dev, AC_ID, &ap_version, strlen(ver_desc), ver_desc);
@@ -236,11 +240,13 @@ static void send_fp(struct transport_tx *trans, struct link_device *dev)
 #ifdef RADIO_CONTROL
 static void send_rc(struct transport_tx *trans, struct link_device *dev)
 {
+printf("send_rc\n");
   pprz_msg_send_RC(trans, dev, AC_ID, RADIO_CONTROL_NB_CHANNEL, radio_control.values);
 }
 
 static void send_rotorcraft_rc(struct transport_tx *trans, struct link_device *dev)
 {
+printf("send_rotorcraft_rc\n");
 #ifdef RADIO_KILL_SWITCH
   int16_t _kill_switch = radio_control.values[RADIO_KILL_SWITCH];
 #else
@@ -279,8 +285,9 @@ static void send_rotorcraft_cmd(struct transport_tx *trans, struct link_device *
 }
 
 
-void autopilot_init(void)
+void autopilot_init(void)//TODO PORT
 {
+//    printf("autopilot_init*********************************************************************************\n");
   /* mode is finally set at end of init if MODE_STARTUP is not KILL */
   autopilot_mode = AP_MODE_KILL;
   autopilot_motors_on = FALSE;
@@ -293,14 +300,16 @@ void autopilot_init(void)
   autopilot_flight_time = 0;
   autopilot_rc = TRUE;
   autopilot_power_switch = FALSE;
-#ifdef POWER_SWITCH_GPIO
-  gpio_setup_output(POWER_SWITCH_GPIO);
-  gpio_clear(POWER_SWITCH_GPIO); // POWER OFF
-#endif
+//#ifdef POWER_SWITCH_GPIO
+//    printf("POWER_SWITCH_GPIO\n");
+//  gpio_setup_output(POWER_SWITCH_GPIO);
+//  gpio_clear(POWER_SWITCH_GPIO); // POWER OFF
+//#endif
 
   autopilot_arming_init();
 
   nav_init();
+  printf("\nCALLED nav_init\n");
   guidance_h_init();
   guidance_v_init();
 
@@ -321,20 +330,62 @@ void autopilot_init(void)
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_CMD, send_rotorcraft_cmd);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_DL_VALUE, send_dl_value);
 #ifdef ACTUATORS
+//  printf("ACTUATORS\n");
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ACTUATORS, send_actuators);
 #endif
 #ifdef RADIO_CONTROL
+//    printf("RADIO_CONTROL\n");
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_RC, send_rc);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_RADIO_CONTROL, send_rotorcraft_rc);
 #endif
 }
 
+void juav_register_periodic_telemetry_send_autopilot_version(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_AUTOPILOT_VERSION, send_autopilot_version);
+}
+void juav_register_periodic_telemetry_send_alive(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ALIVE, send_alive);
+}
+void juav_register_periodic_telemetry_send_status(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_STATUS, send_status);
+}
+void juav_register_periodic_telemetry_send_attitude(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ATTITUDE, send_attitude);
+}
+void juav_register_periodic_telemetry_send_energy(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ENERGY, send_energy);
+}
+void juav_register_periodic_telemetry_send_fp(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_FP, send_fp);
+}
+void juav_register_periodic_telemetry_send_rotorcraft_cmd(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_CMD, send_rotorcraft_cmd);
+}
+void juav_register_periodic_telemetry_send_dl_value(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_DL_VALUE, send_dl_value);
+}
+void juav_register_periodic_telemetry_send_actuators(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ACTUATORS, send_actuators);
+}
+void juav_register_periodic_telemetry_send_rc(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_RC, send_rc);
+}
+void juav_register_periodic_telemetry_send_rotorcraft_rc(void) {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_RADIO_CONTROL, send_rotorcraft_rc);
+}
 
 #define NAV_PRESCALER (PERIODIC_FREQUENCY / NAV_FREQ)
-void autopilot_periodic(void)
+void autopilot_periodic(void) //TODO Port
 {
 
-  RunOnceEvery(NAV_PRESCALER, compute_dist2_to_home());
+//  printf("autopilot_mode = %d\n",autopilot_mode);
+//    printf("autopilot_periodic CCCC\n");
+
+//  RunOnceEvery(NAV_PRESCALER, compute_dist2_to_home());
+
+//    printf("autopilot_in_flight -> %d\n",autopilot_in_flight);
+//  printf("autopilot_mode -> %d\n",autopilot_mode);
+//  printf("too_far_from_home -> %d\n",too_far_from_home);
 
   if (autopilot_in_flight && autopilot_mode == AP_MODE_NAV) {
     if (too_far_from_home) {
@@ -347,7 +398,7 @@ void autopilot_periodic(void)
   }
 
   if (autopilot_mode == AP_MODE_HOME) {
-    RunOnceEvery(NAV_PRESCALER, nav_home());
+//    RunOnceEvery(NAV_PRESCALER, nav_home());
   } else {
     // otherwise always call nav_periodic_task so that carrot is always updated in GCS for other modes
     RunOnceEvery(NAV_PRESCALER, nav_periodic_task());
@@ -358,16 +409,18 @@ void autopilot_periodic(void)
    * or just "detected" ground, go to KILL mode.
    */
   if (autopilot_mode == AP_MODE_FAILSAFE) {
+//      printf("autopilot_mode == AP_MODE_FAILSAFE\n");
     if (!autopilot_in_flight) {
       autopilot_set_mode(AP_MODE_KILL);
     }
 
-#if FAILSAFE_GROUND_DETECT
-    INFO("Using FAILSAFE_GROUND_DETECT: KILL")
-    if (autopilot_ground_detected) {
-      autopilot_set_mode(AP_MODE_KILL);
-    }
-#endif
+//#if FAILSAFE_GROUND_DETECT
+//    INFO("Using FAILSAFE_GROUND_DETECT: KILL")
+//    printf("using FAILSAFE_GROUND_DETECT\n");
+//    if (autopilot_ground_detected) {
+//      autopilot_set_mode(AP_MODE_KILL);
+//    }
+//#endif
   }
 
   /* Reset ground detection _after_ running flight plan
@@ -382,129 +435,157 @@ void autopilot_periodic(void)
    * downwards velocity setpoints.
    */
   if (autopilot_mode == AP_MODE_KILL) {
+//    printf("autopilot_mode == AP_MODE_KILL\n");
     SetCommands(commands_failsafe);
   } else {
     guidance_v_run(autopilot_in_flight);
     guidance_h_run(autopilot_in_flight);
+//    printf("Stabilzation Commands [0],[1],[2],[3] = %f, %f, %f, %f\n",stabilization_cmd[0],stabilization_cmd[1],stabilization_cmd[2],stabilization_cmd[3]);
     SetRotorcraftCommands(stabilization_cmd, autopilot_in_flight, autopilot_motors_on);
   }
 
 }
 
 
-void autopilot_set_mode(uint8_t new_autopilot_mode)
+void autopilot_set_mode(uint8_t new_autopilot_mode) //TODO Port
 {
-
+//  printf("autopilot_set_mode to %d\n",new_autopilot_mode);
+//    printf("autopilot_set_mode\n");
   /* force startup mode (default is kill) as long as AHRS is not aligned */
   if (!ahrs_is_aligned()) {
+//    printf("MODE_STARTUP = %d",MODE_STARTUP);
     new_autopilot_mode = MODE_STARTUP;
   }
 
   if (new_autopilot_mode != autopilot_mode) {
     /* horizontal mode */
     switch (new_autopilot_mode) {
-      case AP_MODE_FAILSAFE:
-#ifndef KILL_AS_FAILSAFE
-        stabilization_attitude_set_failsafe_setpoint();
-        guidance_h_mode_changed(GUIDANCE_H_MODE_ATTITUDE);
-        break;
-#endif
-      case AP_MODE_KILL:
-        autopilot_in_flight = FALSE;
-        autopilot_in_flight_counter = 0;
-        guidance_h_mode_changed(GUIDANCE_H_MODE_KILL);
-        break;
-      case AP_MODE_RC_DIRECT:
-        guidance_h_mode_changed(GUIDANCE_H_MODE_RC_DIRECT);
-        break;
-      case AP_MODE_RATE_DIRECT:
-      case AP_MODE_RATE_Z_HOLD:
-        guidance_h_mode_changed(GUIDANCE_H_MODE_RATE);
-        break;
+//      case AP_MODE_FAILSAFE:
+//          printf("AP_MODE_FAILSAFE\n");
+//#ifndef KILL_AS_FAILSAFE
+//        stabilization_attitude_set_failsafe_setpoint();
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_ATTITUDE);
+//        break;
+//#endif
+//      case AP_MODE_KILL:
+//          printf("AP_MODE_KILL\n");
+//        autopilot_in_flight = FALSE;
+//        autopilot_in_flight_counter = 0;
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_KILL);
+//        break;
+//      case AP_MODE_RC_DIRECT:
+//          printf("AP_MODE_RC_DIRECT\n");
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_RC_DIRECT);
+//        break;
+//      case AP_MODE_RATE_DIRECT:
+//          printf("AP_MODE_RATE_DIRECT\n");
+//      case AP_MODE_RATE_Z_HOLD:
+//          printf("AP_MODE_RATE_Z_HOLD\n");
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_RATE);
+//        break;
       case AP_MODE_ATTITUDE_RC_CLIMB:
       case AP_MODE_ATTITUDE_DIRECT:
       case AP_MODE_ATTITUDE_CLIMB:
       case AP_MODE_ATTITUDE_Z_HOLD:
+//          printf("BIG CASE\n");
         guidance_h_mode_changed(GUIDANCE_H_MODE_ATTITUDE);
         break;
-      case AP_MODE_FORWARD:
-        guidance_h_mode_changed(GUIDANCE_H_MODE_FORWARD);
-        break;
-      case AP_MODE_CARE_FREE_DIRECT:
-        guidance_h_mode_changed(GUIDANCE_H_MODE_CARE_FREE);
-        break;
-      case AP_MODE_HOVER_DIRECT:
-      case AP_MODE_HOVER_CLIMB:
-      case AP_MODE_HOVER_Z_HOLD:
-        guidance_h_mode_changed(GUIDANCE_H_MODE_HOVER);
-        break;
+//      case AP_MODE_FORWARD:
+//          printf("AP_MODE_FORWARD\n");
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_FORWARD);
+//        break;
+//      case AP_MODE_CARE_FREE_DIRECT:
+//          printf("AP_MODE_CARE_FREE_DIRECT\n");
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_CARE_FREE);
+//        break;
+//      case AP_MODE_HOVER_DIRECT:
+//      case AP_MODE_HOVER_CLIMB:
+//      case AP_MODE_HOVER_Z_HOLD:
+//          printf("BIG_CASE_2\n");
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_HOVER);
+//        break;
       case AP_MODE_HOME:
       case AP_MODE_NAV:
+//          printf("AP_MODE_HOME | AP_MODE_NAV\n");
         guidance_h_mode_changed(GUIDANCE_H_MODE_NAV);
         break;
-      case AP_MODE_MODULE:
-#ifdef GUIDANCE_H_MODE_MODULE_SETTING
-        guidance_h_mode_changed(GUIDANCE_H_MODE_MODULE_SETTING);
-#endif
-        break;
-      case AP_MODE_FLIP:
-        guidance_h_mode_changed(GUIDANCE_H_MODE_FLIP);
-        break;
-      case AP_MODE_GUIDED:
-        guidance_h_mode_changed(GUIDANCE_H_MODE_GUIDED);
-        break;
+//      case AP_MODE_MODULE:
+//#ifdef GUIDANCE_H_MODE_MODULE_SETTING
+//        printf("AP_MODE_MODULE\n");
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_MODULE_SETTING);
+//#endif
+//        break;
+//      case AP_MODE_FLIP:
+//          printf("AP_MODE_FLIP\n");
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_FLIP);
+//        break;
+//      case AP_MODE_GUIDED:
+//          printf("AP_MODE_GUIDED\n");
+//        guidance_h_mode_changed(GUIDANCE_H_MODE_GUIDED);
+//        break;
       default:
         break;
     }
     /* vertical mode */
     switch (new_autopilot_mode) {
-      case AP_MODE_FAILSAFE:
-#ifndef KILL_AS_FAILSAFE
-        guidance_v_mode_changed(GUIDANCE_V_MODE_CLIMB);
-        guidance_v_zd_sp = SPEED_BFP_OF_REAL(FAILSAFE_DESCENT_SPEED);
-        break;
-#endif
-      case AP_MODE_KILL:
-        autopilot_set_motors_on(FALSE);
-        stabilization_cmd[COMMAND_THRUST] = 0;
-        guidance_v_mode_changed(GUIDANCE_V_MODE_KILL);
-        break;
+//      case AP_MODE_FAILSAFE:
+//          printf("AP_MODE_FAILSAFE\n");
+//#ifndef KILL_AS_FAILSAFE
+//          printf("KILL_AS_FAILSAFE\n");
+//        guidance_v_mode_changed(GUIDANCE_V_MODE_CLIMB);
+//        guidance_v_zd_sp = SPEED_BFP_OF_REAL(FAILSAFE_DESCENT_SPEED);
+//        break;
+//#endif
+//      case AP_MODE_KILL:
+//          printf("AP_MODE_KILL\n");
+//        autopilot_set_motors_on(FALSE);
+//        stabilization_cmd[COMMAND_THRUST] = 0;
+//        guidance_v_mode_changed(GUIDANCE_V_MODE_KILL);
+//        break;
       case AP_MODE_RC_DIRECT:
       case AP_MODE_RATE_DIRECT:
       case AP_MODE_ATTITUDE_DIRECT:
       case AP_MODE_HOVER_DIRECT:
       case AP_MODE_CARE_FREE_DIRECT:
       case AP_MODE_FORWARD:
+//          printf("BIG CASE\n");
         guidance_v_mode_changed(GUIDANCE_V_MODE_RC_DIRECT);
         break;
-      case AP_MODE_RATE_RC_CLIMB:
-      case AP_MODE_ATTITUDE_RC_CLIMB:
-        guidance_v_mode_changed(GUIDANCE_V_MODE_RC_CLIMB);
-        break;
-      case AP_MODE_ATTITUDE_CLIMB:
-      case AP_MODE_HOVER_CLIMB:
-        guidance_v_mode_changed(GUIDANCE_V_MODE_CLIMB);
-        break;
-      case AP_MODE_RATE_Z_HOLD:
-      case AP_MODE_ATTITUDE_Z_HOLD:
-      case AP_MODE_HOVER_Z_HOLD:
-        guidance_v_mode_changed(GUIDANCE_V_MODE_HOVER);
-        break;
+//      case AP_MODE_RATE_RC_CLIMB:
+//      case AP_MODE_ATTITUDE_RC_CLIMB:
+//          printf("BIG CASE 2\n");
+//        guidance_v_mode_changed(GUIDANCE_V_MODE_RC_CLIMB);
+//        break;
+//      case AP_MODE_ATTITUDE_CLIMB:
+//      case AP_MODE_HOVER_CLIMB:
+//          printf("BIG CASE 3\n");
+//        guidance_v_mode_changed(GUIDANCE_V_MODE_CLIMB);
+//        break;
+//      case AP_MODE_RATE_Z_HOLD:
+//      case AP_MODE_ATTITUDE_Z_HOLD:
+//      case AP_MODE_HOVER_Z_HOLD:
+//          printf("BIG CASE 4\n");
+//        guidance_v_mode_changed(GUIDANCE_V_MODE_HOVER);
+//        break;
       case AP_MODE_HOME:
       case AP_MODE_NAV:
+//          printf("BIG CASE 5\n");
         guidance_v_mode_changed(GUIDANCE_V_MODE_NAV);
         break;
-      case AP_MODE_MODULE:
-#ifdef GUIDANCE_V_MODE_MODULE_SETTING
-        guidance_v_mode_changed(GUIDANCE_V_MODE_MODULE_SETTING);
-#endif
-        break;
-      case AP_MODE_FLIP:
-        guidance_v_mode_changed(GUIDANCE_V_MODE_FLIP);
-        break;
-      case AP_MODE_GUIDED:
-        guidance_v_mode_changed(GUIDANCE_V_MODE_GUIDED);
-        break;
+//      case AP_MODE_MODULE:
+//#ifdef GUIDANCE_V_MODE_MODULE_SETTING
+//            printf("GUIDANCE_V_MODE_MODULE_SETTING\n");
+//        guidance_v_mode_changed(GUIDANCE_V_MODE_MODULE_SETTING);
+//#endif
+//        break;
+//      case AP_MODE_FLIP:
+//          printf("AP_MODE_FLIP\n");
+//        guidance_v_mode_changed(GUIDANCE_V_MODE_FLIP);
+//        break;
+//      case AP_MODE_GUIDED:
+//          printf("AP_MODE_GUIDED\n");
+//        guidance_v_mode_changed(GUIDANCE_V_MODE_GUIDED);
+//        break;
       default:
         break;
     }
@@ -515,42 +596,47 @@ void autopilot_set_mode(uint8_t new_autopilot_mode)
 
 bool_t autopilot_guided_goto_ned(float x, float y, float z, float heading)
 {
-  if (autopilot_mode == AP_MODE_GUIDED) {
-    guidance_h_set_guided_pos(x, y);
-    guidance_h_set_guided_heading(heading);
-    guidance_v_set_guided_z(z);
-    return TRUE;
-  }
-  return FALSE;
+//    printf("autopilot_guided_goto_ned\n");
+//  if (autopilot_mode == AP_MODE_GUIDED) {
+//    guidance_h_set_guided_pos(x, y);
+//    guidance_h_set_guided_heading(heading);
+//    guidance_v_set_guided_z(z);
+//    return TRUE;
+//  }
+//  return FALSE;
 }
 
 bool_t autopilot_guided_goto_ned_relative(float dx, float dy, float dz, float dyaw)
 {
-  if (autopilot_mode == AP_MODE_GUIDED && stateIsLocalCoordinateValid()) {
-    float x = stateGetPositionNed_f()->x + dx;
-    float y = stateGetPositionNed_f()->y + dy;
-    float z = stateGetPositionNed_f()->z + dz;
-    float heading = stateGetNedToBodyEulers_f()->psi + dyaw;
-    return autopilot_guided_goto_ned(x, y, z, heading);
-  }
-  return FALSE;
+//    printf("autopilot_guided_goto_ned_relative\n");
+//  if (autopilot_mode == AP_MODE_GUIDED && stateIsLocalCoordinateValid()) {
+//    float x = stateGetPositionNed_f()->x + dx;
+//    float y = stateGetPositionNed_f()->y + dy;
+//    float z = stateGetPositionNed_f()->z + dz;
+//    float heading = stateGetNedToBodyEulers_f()->psi + dyaw;
+//    return autopilot_guided_goto_ned(x, y, z, heading);
+//  }
+//  return FALSE;
 }
 
 bool_t autopilot_guided_goto_body_relative(float dx, float dy, float dz, float dyaw)
 {
-  if (autopilot_mode == AP_MODE_GUIDED && stateIsLocalCoordinateValid()) {
-    float psi = stateGetNedToBodyEulers_f()->psi;
-    float x = stateGetPositionNed_f()->x + cosf(-psi) * dx + sinf(-psi) * dy;
-    float y = stateGetPositionNed_f()->y - sinf(-psi) * dx + cosf(-psi) * dy;
-    float z = stateGetPositionNed_f()->z + dz;
-    float heading = psi + dyaw;
-    return autopilot_guided_goto_ned(x, y, z, heading);
-  }
-  return FALSE;
+//    printf("autopilot_guided_goto_body_relative\n");
+//  if (autopilot_mode == AP_MODE_GUIDED && stateIsLocalCoordinateValid()) {
+//    float psi = stateGetNedToBodyEulers_f()->psi;
+//    float x = stateGetPositionNed_f()->x + cosf(-psi) * dx + sinf(-psi) * dy;
+//    float y = stateGetPositionNed_f()->y - sinf(-psi) * dx + cosf(-psi) * dy;
+//    float z = stateGetPositionNed_f()->z + dz;
+//    float heading = psi + dyaw;
+//    return autopilot_guided_goto_ned(x, y, z, heading);
+//  }
+//  return FALSE;
 }
 
-void autopilot_check_in_flight(bool_t motors_on)
+void autopilot_check_in_flight(bool_t motors_on) //TODO Port
 {
+//    printf("autopilot_check_in_flight\n");
+//  printf("autopilot_in_flight_counter = %d\n",autopilot_in_flight_counter);
   if (autopilot_in_flight) {
     if (autopilot_in_flight_counter > 0) {
       /* probably in_flight if thrust, speed and accel above IN_FLIGHT_MIN thresholds */
@@ -571,10 +657,13 @@ void autopilot_check_in_flight(bool_t motors_on)
       /* if thrust above min threshold, assume in_flight.
        * Don't check for velocity and acceleration above threshold here...
        */
+//      printf("if stabilization_cmd[COMMAND_THRUST] > AUTOPILOT_IN_FLIGHT_MIN_THRUST ????\n");
       if (stabilization_cmd[COMMAND_THRUST] > AUTOPILOT_IN_FLIGHT_MIN_THRUST) {
+//        printf("if stabilization_cmd[COMMAND_THRUST] > AUTOPILOT_IN_FLIGHT_MIN_THRUST =TRUE\n");
         autopilot_in_flight_counter++;
         if (autopilot_in_flight_counter == AUTOPILOT_IN_FLIGHT_TIME) {
           autopilot_in_flight = TRUE;
+//          printf("SET autopilot_in_flight = TRUE\n");
         }
       } else { /* currently not in_flight and thrust below threshold, reset counter */
         autopilot_in_flight_counter = 0;
@@ -584,8 +673,9 @@ void autopilot_check_in_flight(bool_t motors_on)
 }
 
 
-void autopilot_set_motors_on(bool_t motors_on)
+void autopilot_set_motors_on(bool_t motors_on) //TODO Port
 {
+//    printf("autopilot_set_motors_on\n");
   if (autopilot_mode != AP_MODE_KILL && ahrs_is_aligned() && motors_on) {
     autopilot_motors_on = TRUE;
   } else {
@@ -600,7 +690,7 @@ void autopilot_set_motors_on(bool_t motors_on)
 #define THRESHOLD_2_PPRZ (MAX_PPRZ / 2)
 
 /** get autopilot mode as set by RADIO_MODE 3-way switch */
-static uint8_t ap_mode_of_3way_switch(void)
+static uint8_t ap_mode_of_3way_switch(void) //TODO port
 {
   if (radio_control.values[RADIO_MODE] > THRESHOLD_2_PPRZ) {
     return autopilot_mode_auto2;
@@ -624,6 +714,7 @@ static uint8_t ap_mode_of_3way_switch(void)
 #if defined RADIO_AUTO_MODE || defined(__DOXYGEN__)
 static uint8_t ap_mode_of_two_switches(void)
 {
+printf("ap_mode_of_two_switches\n");
   if (radio_control.values[RADIO_MODE] < THRESHOLD_1_PPRZ) {
     /* RADIO_MODE in MANUAL position */
     return MODE_MANUAL;
@@ -641,18 +732,22 @@ static uint8_t ap_mode_of_two_switches(void)
 }
 #endif
 
-void autopilot_on_rc_frame(void)
+void autopilot_on_rc_frame(void) //TODO Port
 {
+//    printf("autopilot_on_rc_frame\n");
 
   if (kill_switch_is_on()) {
+//    printf("kill_switch_is_on()\n");
     autopilot_set_mode(AP_MODE_KILL);
   } else {
-#ifdef RADIO_AUTO_MODE
-    INFO("Using RADIO_AUTO_MODE to switch between AUTO1 and AUTO2.")
-    uint8_t new_autopilot_mode = ap_mode_of_two_switches();
-#else
+//    printf("NOT kill_switch_is_on()\n");
+//#ifdef RADIO_AUTO_MODE
+//      printf("RADIO_AUTO_MODE Defined\n");
+//    INFO("Using RADIO_AUTO_MODE to switch between AUTO1 and AUTO2.")
+//    uint8_t new_autopilot_mode = ap_mode_of_two_switches();
+//#else
     uint8_t new_autopilot_mode = ap_mode_of_3way_switch();
-#endif
+//#endif
 
     /* don't enter NAV mode if GPS is lost (this also prevents mode oscillations) */
     if (!(new_autopilot_mode == AP_MODE_NAV && GpsIsLost())) {
@@ -662,11 +757,12 @@ void autopilot_on_rc_frame(void)
       }
       /* if in HOME mode, don't allow switching to non-manual modes */
       else if ((autopilot_mode != AP_MODE_HOME)
-#if UNLOCKED_HOME_MODE
-               /* Allowed to leave home mode when UNLOCKED_HOME_MODE */
-               || !too_far_from_home
-#endif
+//#if UNLOCKED_HOME_MODE
+//               /* Allowed to leave home mode when UNLOCKED_HOME_MODE */
+//               || !too_far_from_home
+//#endif
               ) {
+//        printf("autopilot_on_rc_frame setting new mode to %d.\n",new_autopilot_mode);
         autopilot_set_mode(new_autopilot_mode);
       }
     }
@@ -684,19 +780,429 @@ void autopilot_on_rc_frame(void)
   if (autopilot_mode != AP_MODE_FAILSAFE && autopilot_mode != AP_MODE_HOME) {
 
     /* if there are some commands that should always be set from RC, do it */
-#ifdef SetAutoCommandsFromRC
-    SetAutoCommandsFromRC(commands, radio_control.values);
-#endif
-
-    /* if not in NAV_MODE set commands from the rc */
-#ifdef SetCommandsFromRC
-    if (autopilot_mode != AP_MODE_NAV) {
-      SetCommandsFromRC(commands, radio_control.values);
-    }
-#endif
+//#ifdef SetAutoCommandsFromRC
+//    printf("SetAutoCommandsFromRC defined\n");
+//    SetAutoCommandsFromRC(commands, radio_control.values);
+//#endif
+//
+//    /* if not in NAV_MODE set commands from the rc */
+//#ifdef SetCommandsFromRC
+//    printf("SetCommandsFromRC defined\n");
+//    if (autopilot_mode != AP_MODE_NAV) {
+//      SetCommandsFromRC(commands, radio_control.values);
+//    }
+//#endif
 
     guidance_v_read_rc();
-    guidance_h_read_rc(autopilot_in_flight);
+//    guidance_h_read_rc(autopilot_in_flight);
   }
 
+}
+
+void autopilot_on_rc_frame_juav(void)
+{
+//    printf("autopilot_on_rc_frame\n");
+
+//  if (kill_switch_is_on()) {
+////    printf("kill_switch_is_on()\n");
+//    autopilot_set_mode(AP_MODE_KILL);
+//  } else {
+//    printf("NOT kill_switch_is_on()\n");
+//#ifdef RADIO_AUTO_MODE
+//      printf("RADIO_AUTO_MODE Defined\n");
+//    INFO("Using RADIO_AUTO_MODE to switch between AUTO1 and AUTO2.")
+//    uint8_t new_autopilot_mode = ap_mode_of_two_switches();
+//#else
+//    uint8_t new_autopilot_mode = ap_mode_of_3way_switch();
+//#endif
+
+    /* don't enter NAV mode if GPS is lost (this also prevents mode oscillations) */
+//    if (!(new_autopilot_mode == AP_MODE_NAV && GpsIsLost())) {
+//      /* always allow to switch to manual */
+//      if (new_autopilot_mode == MODE_MANUAL) {
+//        autopilot_set_mode(new_autopilot_mode);
+//      }
+//        /* if in HOME mode, don't allow switching to non-manual modes */
+//      else if ((autopilot_mode != AP_MODE_HOME)
+////#if UNLOCKED_HOME_MODE
+////               /* Allowed to leave home mode when UNLOCKED_HOME_MODE */
+////               || !too_far_from_home
+////#endif
+//              ) {
+//        printf("autopilot_on_rc_frame setting new mode to %d.\n",new_autopilot_mode);
+//        autopilot_set_mode(new_autopilot_mode);
+//      }
+//    }
+//  }
+
+  /* an arming sequence is used to start/stop motors.
+   * only allow arming if ahrs is aligned
+   */
+//  if (ahrs_is_aligned()) {
+//    autopilot_arming_check_motors_on();
+//    kill_throttle = ! autopilot_motors_on;
+//  }
+
+  /* if not in FAILSAFE or HOME mode, read RC and set commands accordingly */
+//  if (autopilot_mode != AP_MODE_FAILSAFE && autopilot_mode != AP_MODE_HOME) {
+
+    /* if there are some commands that should always be set from RC, do it */
+//#ifdef SetAutoCommandsFromRC
+//    printf("SetAutoCommandsFromRC defined\n");
+//    SetAutoCommandsFromRC(commands, radio_control.values);
+//#endif
+
+    /* if not in NAV_MODE set commands from the rc */
+//#ifdef SetCommandsFromRC
+//    printf("SetCommandsFromRC defined\n");
+//    if (autopilot_mode != AP_MODE_NAV) {
+//      SetCommandsFromRC(commands, radio_control.values);
+//    }
+//#endif
+
+//    guidance_v_read_rc();
+//    guidance_h_read_rc(autopilot_in_flight);
+//  }
+
+}
+
+void autopilot_periodic_prior_juav()
+{
+
+    RunOnceEvery(NAV_PRESCALER, compute_dist2_to_home());
+
+    if (autopilot_in_flight && autopilot_mode == AP_MODE_NAV) {
+        if (too_far_from_home) {
+            if (dist2_to_home > failsafe_mode_dist2) {
+                autopilot_set_mode(FAILSAFE_MODE_TOO_FAR_FROM_HOME);
+            } else {
+                autopilot_set_mode(AP_MODE_HOME);
+            }
+        }
+    }
+
+    if (autopilot_mode == AP_MODE_HOME) {
+        RunOnceEvery(NAV_PRESCALER, nav_home());
+    } else {
+        // otherwise always call nav_periodic_task so that carrot is always updated in GCS for other modes
+        RunOnceEvery(NAV_PRESCALER, nav_periodic_task());
+    }
+
+
+    /* If in FAILSAFE mode and either already not in_flight anymore
+     * or just "detected" ground, go to KILL mode.
+     */
+    if (autopilot_mode == AP_MODE_FAILSAFE) {
+        if (!autopilot_in_flight) {
+            autopilot_set_mode(AP_MODE_KILL);
+        }
+
+#if FAILSAFE_GROUND_DETECT
+        INFO("Using FAILSAFE_GROUND_DETECT: KILL")
+    if (autopilot_ground_detected) {
+      autopilot_set_mode(AP_MODE_KILL);
+    }
+#endif
+    }
+
+    /* Reset ground detection _after_ running flight plan
+     */
+    if (!autopilot_in_flight) {
+        autopilot_ground_detected = FALSE;
+        autopilot_detect_ground_once = FALSE;
+    }
+
+   /* Set fixed "failsafe" commands from airframe file if in KILL mode.
+   * If in FAILSAFE mode, run normal loops with failsafe attitude and
+   * downwards velocity setpoints.
+   */
+    if (autopilot_mode == AP_MODE_KILL) {
+        SetCommands(commands_failsafe);
+    } else {
+        guidance_v_run(autopilot_in_flight);
+//        guidance_h_run(autopilot_in_flight); //this done in java
+//        SetRotorcraftCommands(stabilization_cmd, autopilot_in_flight, autopilot_motors_on); //must be called after java autopilot_periodic_post_juav()
+    }
+}
+
+bool is_autopilot_mode_ap_mode_kill_juav() {
+    return autopilot_mode == AP_MODE_KILL;
+}
+
+void autopilot_periodic_post_juav()
+{
+    if (autopilot_mode != AP_MODE_KILL)
+        SetRotorcraftCommands(stabilization_cmd, autopilot_in_flight, autopilot_motors_on);
+}
+
+bool get_autopilot_in_flight_juav() {
+    return autopilot_in_flight;
+}
+
+//test plumbing
+void guidance_h_run_native_test_juav(bool in_flight) {
+    guidance_h_run(in_flight); //this done in java
+}
+void guidance_v_run_native_test_juav(bool in_flight) {
+  guidance_v_run(in_flight); //this done in java
+}
+
+int juav_get_radio_control_value(int index) {
+//  printf("%d\n",RADIO_THROTTLE);
+//  printf("%d\n",RADIO_ROLL);
+//  printf("%d\n",RADIO_PITCH);
+//  printf("%d\n",RADIO_YAW);
+//  printf("%d\n",RADIO_GEAR);
+//  printf("%d\n",RADIO_FLAP);
+//  printf("%d\n",RADIO_AUX1);
+//  printf("%d\n",RADIO_AUX2);
+//  printf("%d\n",RADIO_AUX3);
+//  printf("%d\n",RADIO_AUX4);
+//  printf("%d\n",RADIO_AUX5);
+//  printf("%d\n",RADIO_AUX6);
+//  printf("%d\n",RADIO_AUX7);
+  return radio_control.values[index];
+}
+
+short juav_get_radio_control_status() {
+//  printf("RC_OK -> %d\n",RC_OK);
+//  printf("RC_LOST -> %d\n",RC_LOST);
+//  printf("RC_REALLY_LOST -> %d\n",RC_REALLY_LOST);
+//
+//  printf("Actual status found was %d.\n",radio_control.status);
+  return radio_control.status;
+}
+//Navigation
+struct EnuCoor_i juav_get_navigation_carrot() {
+  return navigation_carrot;
+}
+
+float juav_get_dist2_to_home() {
+  return dist2_to_home;
+}
+
+bool juav_get_too_far_from_home() {
+  return too_far_from_home;
+}
+
+short juav_get_horizontal_mode() {
+  return horizontal_mode;
+}
+
+int juav_get_nav_roll() {
+  return nav_roll;
+}
+int juav_get_nav_pitch() {
+  return nav_pitch;
+}
+int juav_get_nav_heading() {
+  return nav_heading;
+}
+
+void juav_set_nav_heading(int new_heading) {
+  nav_heading = new_heading;
+}
+
+int juav_get_vertical_mode() {
+//  printf("vertical_mode = %d\n",vertical_mode);
+  return vertical_mode;
+}
+
+int juav_get_nav_climb() {
+  return nav_climb;
+}
+
+int juav_get_nav_flight_altitude() {
+  return nav_flight_altitude;
+}
+
+int juav_get_nav_throttle() {
+  return nav_throttle;
+}
+
+void juav_set_guidance_h_mode(short newMode) {
+  guidance_h.mode = newMode;
+}
+
+void juav_set_guidance_v_mode(short newMode) {
+  guidance_v_mode = newMode;
+}
+
+void juav_set_autopilot_mode(short newMode) {
+  autopilot_mode = newMode;
+}
+
+void juav_set_stabilization_command(int cmdIndex, int command) {
+  commands[cmdIndex] = command;
+}
+
+bool juav_get_autopilot_motors_on() {
+  return autopilot_motors_on;
+}
+
+void juav_set_autopilot_motors_on(bool newValue) {
+  autopilot_motors_on = newValue;
+}
+/////////
+void juav_set_autopilot_check_motor_status(int newValue) {
+  autopilot_check_motor_status = newValue;
+}
+int juav_get_autopilot_check_motor_status() {
+  return autopilot_check_motor_status;
+}
+void juav_set_autopilot_motors_on_counter(int newValue) {
+  autopilot_motors_on_counter = newValue;
+}
+int juav_get_autopilot_motors_on_counter() {
+  return autopilot_motors_on_counter;
+}
+
+int juav_get_stabilization_cmd(int cmdIndex) {
+  return stabilization_cmd[cmdIndex];
+}
+
+void juav_set_stabilization_cmd(int cmdIndex, int newValue) {
+  stabilization_cmd[cmdIndex] = newValue;
+}
+
+///
+int juav_get_guidance_h_sp_pos_x() {
+  return guidance_h.sp.pos.x;
+}
+int juav_get_guidance_h_sp_pos_y() {
+  return guidance_h.sp.pos.y;
+}
+void juav_set_guidance_h_sp_pos_x(int x) {
+  guidance_h.sp.pos.x = x;
+}
+void juav_set_guidance_h_sp_pos_y(int y) {
+  guidance_h.sp.pos.y = y;
+}
+///
+int juav_get_guidance_h_sp_speed_x() {
+  return guidance_h.sp.speed.x;
+}
+int juav_get_guidance_h_sp_speed_y() {
+  return guidance_h.sp.speed.y;
+}
+//
+int juav_get_guidance_h_sp_heading() {
+  return guidance_h.sp.heading;
+}
+void juav_set_guidance_h_sp_heading(int newHeading) {
+  guidance_h.sp.heading = newHeading;
+}
+//
+int juav_get_guidance_h_ref_pos_x() {
+  return guidance_h.ref.pos.x;
+}
+int juav_get_guidance_h_ref_pos_y() {
+  return guidance_h.ref.pos.y;
+}
+void juav_set_guidance_h_ref_pos_x(int x) {
+  guidance_h.ref.pos.x = x;
+}
+void juav_set_guidance_h_ref_pos_y(int y) {
+  guidance_h.ref.pos.y = y;
+}
+//
+int juav_get_guidance_h_ref_speed_x() {
+  return guidance_h.ref.speed.x;
+}
+int juav_get_guidance_h_ref_speed_y() {
+  return guidance_h.ref.speed.y;
+}
+void juav_set_guidance_h_ref_speed_x(int x) {
+  guidance_h.ref.speed.x = x;
+}
+void juav_set_guidance_h_ref_speed_y(int y) {
+  guidance_h.ref.speed.y = y;
+}
+//
+int juav_get_guidance_h_ref_accel_x() {
+  return guidance_h.ref.accel.x;
+}
+int juav_get_guidance_h_ref_accel_y() {
+  return guidance_h.ref.accel.y;
+}
+void juav_set_guidance_h_ref_accel_x(int x) {
+  guidance_h.ref.accel.x = x;
+}
+void juav_set_guidance_h_ref_accel_y(int y) {
+  guidance_h.ref.accel.y = y;
+}
+//
+int juav_get_guidance_h_cmd_earth_x() {
+  return guidance_h_cmd_earth.x;
+}
+int juav_get_guidance_h_cmd_earth_y() {
+  return guidance_h_cmd_earth.y;
+}
+void juav_set_guidance_h_cmd_earth_x(int x) {
+  guidance_h_cmd_earth.x = x;
+}
+void juav_set_guidance_h_cmd_earth_y(int y) {
+  guidance_h_cmd_earth.y = y;
+}
+//
+int juav_get_stab_att_sp_quat_qi() {
+//  printf("juav_get_stab_att_sp_quat_qi = %d\n",juav_get_stab_att_sp_quat_qi);
+  return stab_att_sp_quat.qi;
+}
+int juav_get_stab_att_sp_quat_qx() {
+//  printf("juav_get_stab_att_sp_quat_qx = %d\n",juav_get_stab_att_sp_quat_qx);
+  return stab_att_sp_quat.qx;
+}
+int juav_get_stab_att_sp_quat_qy() {
+//  printf("juav_get_stab_att_sp_quat_qy = %d\n",juav_get_stab_att_sp_quat_qy);
+  return stab_att_sp_quat.qy;
+}
+int juav_get_stab_att_sp_quat_qz() {
+//  printf("juav_get_stab_att_sp_quat_qz = %d\n",juav_get_stab_att_sp_quat_qz);
+  return stab_att_sp_quat.qz;
+}
+//
+void juav_set_stab_att_sp_quat_qi(int qi) {
+  stab_att_sp_quat.qi = qi;
+}
+void juav_set_stab_att_sp_quat_qx(int qx) {
+  stab_att_sp_quat.qx = qx;
+}
+void juav_set_stab_att_sp_quat_qy(int qy) {
+  stab_att_sp_quat.qy = qy;
+}
+void juav_set_stab_att_sp_quat_qz(int qz) {
+  stab_att_sp_quat.qz = qz;
+}
+//
+
+int juav_get_stab_att_sp_euler_phi() {
+  return stab_att_sp_euler.phi;
+}
+int juav_get_stab_att_sp_euler_psi() {
+  return stab_att_sp_euler.psi;
+}
+int juav_get_stab_att_sp_euler_theta() {
+  return stab_att_sp_euler.theta;
+}
+void juav_set_stab_att_sp_euler_phi(int phi) {
+  stab_att_sp_euler.phi = phi;
+}
+void juav_set_stab_att_sp_euler_psi(int psi) {
+  stab_att_sp_euler.psi = psi;
+}
+void juav_set_stab_att_sp_euler_theta(int theta) {
+  stab_att_sp_euler.theta = theta;
+}
+void juav_guidance_h_mode_changed(short newMode) {
+  guidance_h_mode_changed(newMode);
+}
+void juav_guidance_v_mode_changed(short newMode) {
+  guidance_v_mode_changed(newMode);
+}
+void juav_guidance_h_read_rc(bool in_flight) {
+  guidance_h_read_rc(in_flight);
+}
+void juav_autopilot_set_mode_native(short new_mode) {
+  autopilot_set_mode(new_mode);
 }

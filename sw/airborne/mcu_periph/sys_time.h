@@ -112,6 +112,7 @@ static inline bool_t sys_time_check_and_ack_timer(tid_t id)
 {
   if (sys_time.timer[id].elapsed) {
     sys_time.timer[id].elapsed = FALSE;
+//    printf("sys_time.timer[%d].elapsed = TRUE\n", id);
     return TRUE;
   }
   return FALSE;

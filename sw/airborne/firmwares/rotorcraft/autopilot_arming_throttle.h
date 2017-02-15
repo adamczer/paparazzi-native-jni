@@ -48,6 +48,7 @@ bool_t autopilot_unarmed_in_auto;
 
 static inline void autopilot_arming_init(void)
 {
+  printf("autopilot_arming_init throttle\n");
   autopilot_arming_state = STATE_UNINIT;
   autopilot_arming_delay_counter = 0;
   autopilot_unarmed_in_auto = FALSE;

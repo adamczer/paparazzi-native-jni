@@ -34,6 +34,7 @@
 #include "math/pprz_algebra_float.h"
 #include "math/pprz_algebra_int.h"
 #include "state.h"
+#include <time.h>
 
 struct Int32AttitudeGains stabilization_gains = {
   {STABILIZATION_ATTITUDE_PHI_PGAIN, STABILIZATION_ATTITUDE_THETA_PGAIN, STABILIZATION_ATTITUDE_PSI_PGAIN },
@@ -70,6 +71,7 @@ struct AttRefQuatInt att_ref_quat_i;
 #define GAIN_PRESCALER_P 12
 #define GAIN_PRESCALER_D 3
 #define GAIN_PRESCALER_I 3
+static bool juavBenchmarkLogging = false;
 
 #if PERIODIC_TELEMETRY
 #include "subsystems/datalink/telemetry.h"
@@ -132,7 +134,7 @@ static void send_ahrs_ref_quat(struct transport_tx *trans, struct link_device *d
                               &(quat->qz));
 }
 #endif
-
+//TODO ALL THIS
 void stabilization_attitude_init(void)
 {
 
@@ -147,8 +149,20 @@ void stabilization_attitude_init(void)
 #endif
 }
 
-void stabilization_attitude_enter(void)
+void juav_register_periodic_telemetry_send_att() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_STAB_ATTITUDE_INT, send_att);
+}
+void juav_register_periodic_telemetry_send_att_ref() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_STAB_ATTITUDE_REF_INT, send_att_ref);
+}
+void juav_register_periodic_telemetry_send_ahrs_ref_quat() {
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_AHRS_REF_QUAT, send_ahrs_ref_quat);
+}
+
+
+void stabilization_attitude_enter(void) //TODO PORT
 {
+  printf("stabilization_attitude_enter\n");
 
   /* reset psi setpoint to current psi angle */
   stab_att_sp_euler.psi = stabilization_attitude_get_heading_i();
@@ -157,10 +171,16 @@ void stabilization_attitude_enter(void)
 
   int32_quat_identity(&stabilization_att_sum_err_quat);
 
+//  printf("stab_att_sp_euler psi,psi,theta= %d,%d,%d",
+//                     stab_att_sp_euler.psi,
+//                     stab_att_sp_euler.phi,
+//                     stab_att_sp_euler.theta);
+
 }
 
 void stabilization_attitude_set_failsafe_setpoint(void)
 {
+//  printf("stabilization_attitude_set_failsafe_setpoint yyyyyyyy\n");
   /* set failsafe to zero roll/pitch and current heading */
   int32_t heading2 = stabilization_attitude_get_heading_i() / 2;
   PPRZ_ITRIG_COS(stab_att_sp_quat.qi, heading2);
@@ -169,8 +189,9 @@ void stabilization_attitude_set_failsafe_setpoint(void)
   PPRZ_ITRIG_SIN(stab_att_sp_quat.qz, heading2);
 }
 
-void stabilization_attitude_set_rpy_setpoint_i(struct Int32Eulers *rpy)
+void stabilization_attitude_set_rpy_setpoint_i(struct Int32Eulers *rpy)//TODO PORT
 {
+//  printf("stabilization_attitude_set_rpy_setpoint_i\n");
   // stab_att_sp_euler.psi still used in ref..
   stab_att_sp_euler = *rpy;
 
@@ -179,6 +200,7 @@ void stabilization_attitude_set_rpy_setpoint_i(struct Int32Eulers *rpy)
 
 void stabilization_attitude_set_earth_cmd_i(struct Int32Vect2 *cmd, int32_t heading)
 {
+//  printf("stabilization_attitude_set_earth_cmd_i\n");
   // stab_att_sp_euler.psi still used in ref..
   stab_att_sp_euler.psi = heading;
 
@@ -190,8 +212,11 @@ void stabilization_attitude_set_earth_cmd_i(struct Int32Vect2 *cmd, int32_t head
   PPRZ_ITRIG_COS(c_psi, psi);
   stab_att_sp_euler.phi = (-s_psi * cmd->x + c_psi * cmd->y) >> INT32_TRIG_FRAC;
   stab_att_sp_euler.theta = -(c_psi * cmd->x + s_psi * cmd->y) >> INT32_TRIG_FRAC;
+//  printf("CCC stab_att_sp_euler psi,phi,theta = %d,%d,%d\n",stab_att_sp_euler.psi,stab_att_sp_euler.phi,stab_att_sp_euler.theta);
 
   quat_from_earth_cmd_i(&stab_att_sp_quat, cmd, heading);
+//  printf("CCC stab_att_sp_quat qi,qx,qy,qz = %d,%d,%d,%d\n",stab_att_sp_quat.qi,stab_att_sp_quat.qx,stab_att_sp_quat.qy,stab_att_sp_quat.qz);
+//  printf("CCC stab_att_sp_quat qi,qx,qy,qz = %d,%d,%d,%d\n",quat.qi,quat.qx,quat.qy,quat.qz);
 }
 
 #define OFFSET_AND_ROUND(_a, _b) (((_a)+(1<<((_b)-1)))>>(_b))
@@ -199,6 +224,12 @@ void stabilization_attitude_set_earth_cmd_i(struct Int32Vect2 *cmd, int32_t head
 
 static void attitude_run_ff(int32_t ff_commands[], struct Int32AttitudeGains *gains, struct Int32Rates *ref_accel)
 {
+//  printf("gains->dd.x = %d\n",gains->dd.x);
+//  printf("gains->dd.y = %d\n",gains->dd.y);
+//  printf("gains->dd.z = %d\n",gains->dd.z);
+//    printf("ref_accel->p = %d\n",ref_accel->p);
+//  printf("ref_accel->q = %d\n",ref_accel->q);
+//  printf("ref_accel->r = %d\n",ref_accel->r);
   /* Compute feedforward based on reference acceleration */
 
   ff_commands[COMMAND_ROLL]  = GAIN_PRESCALER_FF * gains->dd.x * RATE_FLOAT_OF_BFP(ref_accel->p) / (1 << 7);
@@ -209,6 +240,7 @@ static void attitude_run_ff(int32_t ff_commands[], struct Int32AttitudeGains *ga
 static void attitude_run_fb(int32_t fb_commands[], struct Int32AttitudeGains *gains, struct Int32Quat *att_err,
                             struct Int32Rates *rate_err, struct Int32Quat *sum_err)
 {
+//  printf("attitude_run_fb\n");
   /*  PID feedback */
   fb_commands[COMMAND_ROLL] =
     GAIN_PRESCALER_P * gains->p.x  * QUAT1_FLOAT_OF_BFP(att_err->qx) +
@@ -225,10 +257,16 @@ static void attitude_run_fb(int32_t fb_commands[], struct Int32AttitudeGains *ga
     GAIN_PRESCALER_D * gains->d.z  * RATE_FLOAT_OF_BFP(rate_err->r) +
     GAIN_PRESCALER_I * gains->i.z  * QUAT1_FLOAT_OF_BFP(sum_err->qz);
 
-}
+//  printf("fb_commands = yaw,pitch,roll = %d,%d,%d\n",
+//         fb_commands[COMMAND_YAW],
+//         fb_commands[COMMAND_PITCH],
+//         fb_commands[COMMAND_ROLL]);
 
+}
+static int iterCount = 0;
 void stabilization_attitude_run(bool_t enable_integrator)
 {
+//  printf("stabilization_attitude_run\n");
 
   /*
    * Update reference
@@ -236,7 +274,12 @@ void stabilization_attitude_run(bool_t enable_integrator)
    * PERIODIC_FREQUENCY is assumed to be 512Hz
    */
   static const float dt = (1./PERIODIC_FREQUENCY);
+//  printf("att_ref_quat_i->saturation->max_accel.p,q,r = %d,%d,%d\n",att_ref_quat_i.saturation.max_accel.p,att_ref_quat_i.saturation.max_accel.q,att_ref_quat_i.saturation.max_accel.r);
+//  printf("stab_att_sp_quat qi,qx,qy,qz = %d,%d,%d,%d\n",stab_att_sp_quat.qi,stab_att_sp_quat.qx,stab_att_sp_quat.qy,stab_att_sp_quat.qz);
   attitude_ref_quat_int_update(&att_ref_quat_i, &stab_att_sp_quat, dt);
+  struct timespec t0;
+  if(juavBenchmarkLogging)
+    clock_gettime(CLOCK_REALTIME, &t0);
 
   /*
    * Compute errors for feedback
@@ -245,6 +288,7 @@ void stabilization_attitude_run(bool_t enable_integrator)
   /* attitude error                          */
   struct Int32Quat att_err;
   struct Int32Quat *att_quat = stateGetNedToBodyQuat_i();
+//  printf("att_quat qi,qx,qy,qz = %d,%d,%d,%d\n",att_quat->qi,att_quat->qx,att_quat->qy,att_quat->qz);
   INT32_QUAT_INV_COMP(att_err, *att_quat, att_ref_quat_i.quat);
   /* wrap it in the shortest direction       */
   int32_quat_wrap_shortest(&att_err);
@@ -276,6 +320,8 @@ void stabilization_attitude_run(bool_t enable_integrator)
 
   /* compute the feed forward command */
   attitude_run_ff(stabilization_att_ff_cmd, &stabilization_gains, &att_ref_quat_i.accel);
+//  printf("stabilization_att_ff_cmd roll,pitch,yaw = %d,%d,%d\n",stabilization_att_ff_cmd[COMMAND_ROLL],stabilization_att_ff_cmd[COMMAND_PITCH],stabilization_att_ff_cmd[COMMAND_YAW]);
+//  printf("att_ref_quat_i.accel p,q,r = %d,%d,%d\n",att_ref_quat_i.accel.p,att_ref_quat_i.accel.q,att_ref_quat_i.accel.r);
 
   /* compute the feed back command */
   attitude_run_fb(stabilization_att_fb_cmd, &stabilization_gains, &att_err, &rate_err, &stabilization_att_sum_err_quat);
@@ -289,15 +335,277 @@ void stabilization_attitude_run(bool_t enable_integrator)
   BoundAbs(stabilization_cmd[COMMAND_ROLL], MAX_PPRZ);
   BoundAbs(stabilization_cmd[COMMAND_PITCH], MAX_PPRZ);
   BoundAbs(stabilization_cmd[COMMAND_YAW], MAX_PPRZ);
+
+//  printf("stabilization_cmd yaw,pitch,roll = %d,%d,%d\n",stabilization_cmd[COMMAND_YAW],stabilization_cmd[COMMAND_PITCH],stabilization_cmd[COMMAND_ROLL]);
+
+
+  if(juavBenchmarkLogging) {
+    iterCount++;
+    struct timespec t1;
+    clock_gettime(CLOCK_REALTIME, &t1); // Works on Linux
+    long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
+    printf("%d", iterCount);
+    printf(" %d\n", elapsed);
+  }
 }
 
+//TODO PORT THIS
 void stabilization_attitude_read_rc(bool_t in_flight, bool_t in_carefree, bool_t coordinated_turn)
 {
+  printf("stabilization_attitude_read_rc\n");
   struct FloatQuat q_sp;
 #if USE_EARTH_BOUND_RC_SETPOINT
+    printf("USE_EARTH_BOUND_RC_SETPOINT\n");
   stabilization_attitude_read_rc_setpoint_quat_earth_bound_f(&q_sp, in_flight, in_carefree, coordinated_turn);
 #else
+//    printf("USE_EARTH_BOUND_RC_SETPOINT ELSE\n");
   stabilization_attitude_read_rc_setpoint_quat_f(&q_sp, in_flight, in_carefree, coordinated_turn);
 #endif
+//  printf("stab_att_sp_quat qi,qx,qy,qz = %d,%d,%d,%d\n",stab_att_sp_quat.qi,stab_att_sp_quat.qx,stab_att_sp_quat.qy,stab_att_sp_quat.qz);
   QUAT_BFP_OF_REAL(stab_att_sp_quat, q_sp);
+}
+
+void attitude_ref_quat_int_update_juav(float dt) {
+  attitude_ref_quat_int_update(&att_ref_quat_i, &stab_att_sp_quat, dt);
+}
+
+int get_stabilization_att_sum_err_quat_i_juav() {
+  return stabilization_att_sum_err_quat.qi;
+}
+int get_stabilization_att_sum_err_quat_x_juav() {
+  return stabilization_att_sum_err_quat.qx;
+}
+int get_stabilization_att_sum_err_quat_y_juav() {
+  return stabilization_att_sum_err_quat.qy;
+}
+int get_stabilization_att_sum_err_quat_z_juav() {
+  return stabilization_att_sum_err_quat.qz;
+}
+void set_stabilization_att_sum_err_quat_i_juav(int qi) {
+  stabilization_att_sum_err_quat.qi = qi;
+}
+void set_stabilization_att_sum_err_quat_x_juav(int qx) {
+  stabilization_att_sum_err_quat.qx = qx;
+}
+void set_stabilization_att_sum_err_quat_y_juav(int qy) {
+  stabilization_att_sum_err_quat.qy = qy;
+}
+void set_stabilization_att_sum_err_quat_z_juav(int qz) {
+  stabilization_att_sum_err_quat.qz = qz;
+}
+
+int get_att_ref_quat_i_quat_qi_juav() {
+  return att_ref_quat_i.quat.qi;
+}
+int get_att_ref_quat_i_quat_qx_juav() {
+  return att_ref_quat_i.quat.qx;
+}
+int get_att_ref_quat_i_quat_qy_juav() {
+  return att_ref_quat_i.quat.qy;
+}
+int get_att_ref_quat_i_quat_qz_juav() {
+  return att_ref_quat_i.quat.qz;
+}
+
+int get_att_ref_quat_i_rate_p_juav() {
+  return att_ref_quat_i.rate.p;
+}
+int get_att_ref_quat_i_rate_q_juav() {
+  return att_ref_quat_i.rate.q;
+}
+int get_att_ref_quat_i_rate_r_juav() {
+  return att_ref_quat_i.rate.r;
+}
+int get_att_ref_quat_i_accel_p_juav() {
+  return att_ref_quat_i.accel.p;
+}
+int get_att_ref_quat_i_accel_q_juav() {
+  return att_ref_quat_i.accel.q;
+}
+int get_att_ref_quat_i_accel_r_juav() {
+  return att_ref_quat_i.accel.r;
+}
+
+void set_att_ref_quat_i_quat_qi_juav(int i) {
+  att_ref_quat_i.quat.qi = i;
+}
+  void set_att_ref_quat_i_quat_qx_juav(int i) {
+  att_ref_quat_i.quat.qx = i;
+}
+void set_att_ref_quat_i_quat_qy_juav(int i) {
+  att_ref_quat_i.quat.qy = i;
+}
+void set_att_ref_quat_i_quat_qz_juav(int i) {
+  att_ref_quat_i.quat.qz = i;
+}
+
+void set_att_ref_quat_i_rate_p_juav(int i) {
+  att_ref_quat_i.rate.p = i;
+}
+void set_att_ref_quat_i_rate_q_juav(int i) {
+  att_ref_quat_i.rate.q = i;
+}
+void set_att_ref_quat_i_rate_r_juav(int i) {
+  att_ref_quat_i.rate.r = i;
+}
+void set_att_ref_quat_i_accel_p_juav(int i) {
+  att_ref_quat_i.accel.p = i;
+}
+void set_att_ref_quat_i_accel_q_juav(int i) {
+  att_ref_quat_i.accel.q = i;
+}
+void set_att_ref_quat_i_accel_r_juav(int i) {
+  att_ref_quat_i.accel.r = i;
+}
+
+int get_stabilization_gains_p_x_juav() {
+  return stabilization_gains.p.x;
+}
+int get_stabilization_gains_p_y_juav() {
+  return stabilization_gains.p.y;
+}
+int get_stabilization_gains_p_z_juav() {
+  return stabilization_gains.p.z;
+}
+int get_stabilization_gains_d_x_juav() {
+  return stabilization_gains.d.x;
+}
+int get_stabilization_gains_d_y_juav() {
+  return stabilization_gains.d.y;
+}
+int get_stabilization_gains_d_z_juav() {
+  return stabilization_gains.d.z;
+}
+int get_stabilization_gains_dd_x_juav() {
+  return stabilization_gains.dd.x;
+}
+int get_stabilization_gains_dd_y_juav() {
+  return stabilization_gains.dd.y;
+}
+int get_stabilization_gains_dd_z_juav() {
+  return stabilization_gains.dd.z;
+}
+int get_stabilization_gains_i_x_juav() {
+  return stabilization_gains.i.x;
+}
+int get_stabilization_gains_i_y_juav() {
+  return stabilization_gains.i.y;
+}
+int get_stabilization_gains_i_z_juav() {
+  return stabilization_gains.i.z;
+}
+
+void set_stabilization_cmd(int yaw,int pitch, int roll) {
+  stabilization_cmd[COMMAND_ROLL] = roll;
+  stabilization_cmd[COMMAND_PITCH] = pitch;
+  stabilization_cmd[COMMAND_YAW] = yaw;
+}
+
+int get_stateGetNedToBodyQuat_i_Qi_juav() {
+  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  return quat->qi;
+}
+int get_stateGetNedToBodyQuat_i_Qx_juav() {
+  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  return quat->qx;
+}
+int get_stateGetNedToBodyQuat_i_Qy_juav() {
+  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  return quat->qy;
+}
+int get_stateGetNedToBodyQuat_i_Qz_juav() {
+  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  return quat->qz;
+}
+int get_stateGetBodyRates_i_p_juav() {
+  struct Int32Rates *body_rate = stateGetBodyRates_i();
+  return body_rate->p;
+}
+int get_stateGetBodyRates_i_q_juav() {
+  struct Int32Rates *body_rate = stateGetBodyRates_i();
+  return body_rate->q;
+}
+int get_stateGetBodyRates_i_r_juav() {
+  struct Int32Rates *body_rate = stateGetBodyRates_i();
+  return body_rate->r;
+}
+void juav_stabilization_attitude_run_native(bool enable_integrator) {
+  stabilization_attitude_run(enable_integrator);
+}
+
+void juav_stabilization_attitude_set_rpy_setpoint_i_native(int psi, int phi, int theta) {
+  struct Int32Eulers rpy;
+  rpy.psi = psi;
+  rpy.phi = phi;
+  rpy.theta = theta;
+  stabilization_attitude_set_rpy_setpoint_i(&rpy);
+}
+
+int get_att_ref_quat_i_euler_psi_juav() {
+  return att_ref_quat_i.euler.psi;
+}
+int get_att_ref_quat_i_euler_phi_juav() {
+  return att_ref_quat_i.euler.phi;
+}
+int get_att_ref_quat_i_euler_theta_juav() {
+  return att_ref_quat_i.euler.theta;
+}
+///
+int get_att_ref_quat_i_model_two_zeta_omega_p_juav() {
+  return att_ref_quat_i.model.two_zeta_omega.p;
+}
+int get_att_ref_quat_i_model_two_zeta_omega_q_juav() {
+  return att_ref_quat_i.model.two_zeta_omega.q;
+}
+int get_att_ref_quat_i_model_two_zeta_omega_r_juav() {
+  return att_ref_quat_i.model.two_zeta_omega.r;
+}
+
+int get_att_ref_quat_i_model_two_omega2_p_juav() {
+  return att_ref_quat_i.model.two_omega2.p;
+}
+int get_att_ref_quat_i_model_two_omega2_q_juav() {
+  return att_ref_quat_i.model.two_omega2.q;
+}
+int get_att_ref_quat_i_model_two_omega2_r_juav() {
+  return att_ref_quat_i.model.two_omega2.r;
+}
+
+float get_att_ref_quat_i_model_zeta_p_juav() {
+  return att_ref_quat_i.model.zeta.p;
+}
+float get_att_ref_quat_i_model_zeta_q_juav() {
+  return att_ref_quat_i.model.zeta.q;
+}
+float get_att_ref_quat_i_model_zeta_r_juav() {
+  return att_ref_quat_i.model.zeta.r;
+}
+float get_att_ref_quat_i_model_omega_p_juav() {
+  return att_ref_quat_i.model.zeta.p;
+}
+float get_att_ref_quat_i_model_omega_q_juav() {
+  return att_ref_quat_i.model.zeta.q;
+}
+float get_att_ref_quat_i_model_omega_r_juav() {
+  return att_ref_quat_i.model.zeta.r;
+}
+
+
+int get_att_ref_quat_i_saturation_max_accel_p_juav() {
+  return att_ref_quat_i.saturation.max_accel.p;
+}
+int get_att_ref_quat_i_saturation_max_accel_q_juav() {
+  return att_ref_quat_i.saturation.max_accel.q;
+}
+int get_att_ref_quat_i_saturation_max_accel_r_juav() {
+  return att_ref_quat_i.saturation.max_accel.r;
+}
+int get_att_ref_quat_i_saturation_max_rate_p_juav() {
+  return att_ref_quat_i.saturation.max_rate.p;
+}
+int get_att_ref_quat_i_saturation_max_rate_q_juav() {
+  return att_ref_quat_i.saturation.max_rate.q;
+}
+int get_att_ref_quat_i_saturation_max_rate_r_juav() {
+  return att_ref_quat_i.saturation.max_rate.r;
 }

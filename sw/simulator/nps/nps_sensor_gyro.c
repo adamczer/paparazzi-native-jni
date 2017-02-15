@@ -60,6 +60,11 @@ void nps_sensor_gyro_run_step(struct NpsSensorGyro *gyro, double time, struct Do
   /* saturate                                       */
   VECT3_BOUND_CUBE(gyro->value, gyro->min, gyro->max);
 
+
+//  printf("gyro->value.x = %f\n",gyro->value.x);
+//  printf("gyro->value.y = %f\n",gyro->value.y);
+//  printf("gyro->value.z = %f\n",gyro->value.z);
+
   gyro->next_update += NPS_GYRO_DT;
   gyro->data_available = TRUE;
 }

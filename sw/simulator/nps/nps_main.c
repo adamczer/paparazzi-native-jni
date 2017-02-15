@@ -88,8 +88,109 @@ double time_to_double(struct timeval *t)
   return ((double)t->tv_sec + (double)(t->tv_usec * 1e-6));
 }
 
+int pprz_main(int argc, char **argv)
+{
+
+  if (!nps_main_parse_options(argc, argv)) { return 1; }
+
+  /* disable buffering for stdout,
+   * so it properly works in paparazzi center
+   * where it is not detected as interactive
+   * and hence fully buffered instead of line buffered
+   */
+  setbuf(stdout, NULL);
+
+  nps_main_init();
+
+  signal(SIGCONT, cont_hdl);
+  signal(SIGTSTP, tstp_hdl);
+  printf("Time factor is %f. (Press Ctrl-Z to change)\n", nps_main.host_time_factor);
+
+  nps_main_run_sim_step();
+  nps_main_display();
+  fake_nps_main_periodic();
+
+  return 0;
+}
+
+int fake_nps_main_periodic()
+{
+  struct timeval tv_now;
+  double  host_time_now;
+
+  if (pauseSignal) {
+    char line[128];
+    double tf = 1.0;
+    double t1, t2, irt;
+
+    gettimeofday(&tv_now, NULL);
+    t1 = time_to_double(&tv_now);
+    /* unscale to initial real time*/
+    irt = t1 - (t1 - nps_main.scaled_initial_time) * nps_main.host_time_factor;
+
+    printf("Press <enter> to continue (or CTRL-Z to suspend).\nEnter a new time factor if needed (current: %f): ",
+           nps_main.host_time_factor);
+    fflush(stdout);
+    if (fgets(line, 127, stdin)) {
+      if ((sscanf(line, " %le ", &tf) == 1)) {
+        if (tf > 0 && tf < 1000) {
+          nps_main.host_time_factor = tf;
+        }
+      }
+      printf("Time factor is %f\n", nps_main.host_time_factor);
+    }
+    gettimeofday(&tv_now, NULL);
+    t2 = time_to_double(&tv_now);
+    /* add the pause to initial real time */
+    irt += t2 - t1;
+    nps_main.real_initial_time += t2 - t1;
+    /* convert to scaled initial real time */
+    nps_main.scaled_initial_time = t2 - (t2 - irt) / nps_main.host_time_factor;
+    pauseSignal = 0;
+  }
+
+  gettimeofday(&tv_now, NULL);
+  host_time_now = time_to_double(&tv_now);
+  double host_time_elapsed = nps_main.host_time_factor * (host_time_now  - nps_main.scaled_initial_time);
+
+#if DEBUG_NPS_TIME
+  printf("%f,%f,%f,%f,%f,%f,", nps_main.host_time_factor, host_time_elapsed, host_time_now, nps_main.scaled_initial_time,
+         nps_main.sim_time, nps_main.display_time);
+#endif
+
+  int cnt = 0;
+  static int prev_cnt = 0;
+  static int grow_cnt = 0;
+  while (nps_main.sim_time <= host_time_elapsed) {
+    nps_main_run_sim_step();
+    nps_main.sim_time += SIM_DT;
+    if (nps_main.display_time < (host_time_now - nps_main.real_initial_time)) {
+      nps_main_display();
+      nps_main.display_time += DISPLAY_DT;
+    }
+    cnt++;
+  }
+
+  /* Check to make sure the simulation doesn't get too far behind real time looping */
+  if (cnt > (prev_cnt)) {grow_cnt++;}
+  else { grow_cnt--;}
+  if (grow_cnt < 0) {grow_cnt = 0;}
+  prev_cnt = cnt;
+
+  if (grow_cnt > 10) {
+    printf("Warning: The time factor is too large for efficient operation! Please reduce the time factor.\n");
+  }
+
+#if DEBUG_NPS_TIME
+  printf("%f,%f\n", nps_main.sim_time, nps_main.display_time);
+#endif
+
+  return 1;
+}
+
 int main(int argc, char **argv)
 {
+  printf("main MF\n");
 
   if (!nps_main_parse_options(argc, argv)) { return 1; }
 
@@ -112,107 +213,6 @@ int main(int argc, char **argv)
 
   return 0;
 }
-
-
-static void nps_main_init(void)
-{
-
-  nps_main.sim_time = 0.;
-  nps_main.display_time = 0.;
-  struct timeval t;
-  gettimeofday(&t, NULL);
-  nps_main.real_initial_time = time_to_double(&t);
-  nps_main.scaled_initial_time = time_to_double(&t);
-
-  nps_ivy_init(nps_main.ivy_bus);
-  nps_fdm_init(SIM_DT);
-  nps_atmosphere_init();
-  nps_sensors_init(nps_main.sim_time);
-  printf("Simulating with dt of %f\n", SIM_DT);
-
-  enum NpsRadioControlType rc_type;
-  char *rc_dev = NULL;
-  if (nps_main.js_dev) {
-    rc_type = JOYSTICK;
-    rc_dev = nps_main.js_dev;
-  } else if (nps_main.spektrum_dev) {
-    rc_type = SPEKTRUM;
-    rc_dev = nps_main.spektrum_dev;
-  } else {
-    rc_type = SCRIPT;
-  }
-  nps_autopilot_init(rc_type, nps_main.rc_script, rc_dev);
-
-  if (nps_main.fg_host) {
-    nps_flightgear_init(nps_main.fg_host, nps_main.fg_port, nps_main.fg_time_offset);
-  }
-
-#if DEBUG_NPS_TIME
-  printf("host_time_factor,host_time_elapsed,host_time_now,scaled_initial_time,sim_time_before,display_time_before,sim_time_after,display_time_after\n");
-#endif
-
-}
-
-
-
-static void nps_main_run_sim_step(void)
-{
-  //  printf("sim at %f\n", nps_main.sim_time);
-
-  nps_atmosphere_update(SIM_DT);
-
-  nps_autopilot_run_systime_step();
-
-  nps_fdm_run_step(autopilot.launch, autopilot.commands, NPS_COMMANDS_NB);
-
-  nps_sensors_run_step(nps_main.sim_time);
-
-  nps_autopilot_run_step(nps_main.sim_time);
-
-}
-
-
-static void nps_main_display(void)
-{
-  //  printf("display at %f\n", nps_main.display_time);
-  nps_ivy_display();
-  if (nps_main.fg_host) {
-    if (nps_main.fg_fdm) {
-      nps_flightgear_send_fdm();
-    } else {
-      nps_flightgear_send();
-    }
-  }
-}
-
-
-void nps_set_time_factor(float time_factor)
-{
-  if (time_factor < 0.0 || time_factor > 100.0) {
-    return;
-  }
-  if (fabs(nps_main.host_time_factor - time_factor) < 0.01) {
-    return;
-  }
-
-  struct timeval tv_now;
-  double t_now, t_elapsed;
-
-  gettimeofday(&tv_now, NULL);
-  t_now = time_to_double(&tv_now);
-
-  /* "virtual" elapsed time with old time factor */
-  t_elapsed = (t_now - nps_main.scaled_initial_time) * nps_main.host_time_factor;
-
-  /* set new time factor */
-  nps_main.host_time_factor = time_factor;
-  printf("Time factor is %f\n", nps_main.host_time_factor);
-  fflush(stdout);
-
-  /* set new "virtual" scaled initial time using new time factor*/
-  nps_main.scaled_initial_time = t_now - t_elapsed / nps_main.host_time_factor;
-}
-
 
 static gboolean nps_main_periodic(gpointer data __attribute__((unused)))
 {
@@ -289,7 +289,266 @@ static gboolean nps_main_periodic(gpointer data __attribute__((unused)))
   return TRUE;
 
 }
+//JUAV ***** BUFFALO
+/**
+ * Triggers the initial section of the paparazzi periodic task
+ * the latter section is executed in Java to allow for incremental porting.
+ *
+ * returned double is the time of the simulation that is needed for the sections down stream
+ */
+static double host_time_now_juav = 0;
+static double host_time_elapsed_juav = 0;
+void nps_main_periodic_juav_native()
+{
+  struct timeval tv_now;
 
+  if (pauseSignal) {
+    char line[128];
+    double tf = 1.0;
+    double t1, t2, irt;
+
+    gettimeofday(&tv_now, NULL);
+    t1 = time_to_double(&tv_now);
+    /* unscale to initial real time*/
+    irt = t1 - (t1 - nps_main.scaled_initial_time) * nps_main.host_time_factor;
+    //FIXME: why do we need to input this?? hard code or it can be taken from command line, right???
+    printf("Press <enter> to continue (or CTRL-Z to suspend).\nEnter a new time factor if needed (current: %f): ",
+           nps_main.host_time_factor);
+    fflush(stdout);
+    if (fgets(line, 127, stdin)) {
+      if ((sscanf(line, " %le ", &tf) == 1)) {
+        if (tf > 0 && tf < 1000) {
+          nps_main.host_time_factor = tf;
+        }
+      }
+      printf("Time factor is %f\n", nps_main.host_time_factor);
+    }
+    gettimeofday(&tv_now, NULL);
+    t2 = time_to_double(&tv_now);
+    /* add the pause to initial real time */
+    irt += t2 - t1;
+    nps_main.real_initial_time += t2 - t1;
+    /* convert to scaled initial real time */
+    nps_main.scaled_initial_time = t2 - (t2 - irt) / nps_main.host_time_factor;
+    pauseSignal = 0;
+  }
+
+  gettimeofday(&tv_now, NULL);
+  host_time_now_juav = time_to_double(&tv_now);
+  host_time_elapsed_juav = nps_main.host_time_factor * (host_time_now_juav  - nps_main.scaled_initial_time);
+  //printf("%s%d\n","nps_main.host_time_factor=",nps_main.host_time_factor);
+  //printf("%s%d\n","nps_main.scaled_initial_time=",nps_main.scaled_initial_time);
+  //printf("%s%d\n","host_time_now_juav=",host_time_now_juav);
+  //printf("%s%d\n","host_time_elapsed_juav=",host_time_elapsed_juav);
+
+#if DEBUG_NPS_TIME
+  printf("%f,%f,%f,%f,%f,%f,", nps_main.host_time_factor, host_time_elapsed_juav, host_time_now_juav, nps_main.scaled_initial_time,
+         nps_main.sim_time, nps_main.display_time);
+#endif
+//TODO must be in java for incremental integration vv
+//  int cnt = 0;
+//  static int prev_cnt = 0;
+//  static int grow_cnt = 0;
+//  while (nps_main.sim_time <= host_time_elapsed) {
+//    nps_main_run_sim_step();
+//    nps_main.sim_time += SIM_DT;
+//    if (nps_main.display_time < (host_time_now - nps_main.real_initial_time)) {
+//      nps_main_display();
+//      nps_main.display_time += DISPLAY_DT;
+//    }
+//    cnt++;
+//  }
+
+  /* Check to make sure the simulation doesn't get too far behind real time looping */
+//  if (cnt > (prev_cnt)) {grow_cnt++;}
+//  else { grow_cnt--;}
+//  if (grow_cnt < 0) {grow_cnt = 0;}
+//  prev_cnt = cnt;
+//
+//  if (grow_cnt > 10) {
+//    printf("Warning: The time factor is too large for efficient operation! Please reduce the time factor.\n");
+//  }
+// TODO must be in java for incremental integration ^^
+
+//#if DEBUG_NPS_TIME
+//  printf("%f,%f\n", nps_main.sim_time, nps_main.display_time);
+//#endif
+
+//  return nps_main.sim_time; // this is required for the system steps
+}
+
+
+
+double get_nps_main_real_initial_time_juav() {
+  return nps_main.real_initial_time;
+}
+
+void nps_main_init_juav() {
+  nps_main_init();
+}
+
+static void nps_main_init(void)
+{
+
+  nps_main.sim_time = 0.;
+  nps_main.display_time = 0.;
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  nps_main.real_initial_time = time_to_double(&t);
+  nps_main.scaled_initial_time = time_to_double(&t);
+
+  nps_ivy_init(nps_main.ivy_bus);
+  nps_fdm_init(SIM_DT);
+  nps_atmosphere_init();
+  nps_sensors_init(nps_main.sim_time);
+  //printf("Simulating with dt of %f\n", SIM_DT);
+
+  enum NpsRadioControlType rc_type;
+  char *rc_dev = NULL;
+//  if (nps_main.js_dev) {
+//    printf("nps_main.js_dev\n");
+//    rc_type = JOYSTICK;
+//    rc_dev = nps_main.js_dev;
+//  } else if (nps_main.spektrum_dev) {
+//    printf("nps_main.spektrum_dev\n");
+//    rc_type = SPEKTRUM;
+//    rc_dev = nps_main.spektrum_dev;
+//  } else {
+//    printf("else\n");
+    rc_type = SCRIPT;
+//  }
+  nps_autopilot_init(rc_type, nps_main.rc_script, rc_dev);
+
+//  if (nps_main.fg_host) {
+//    printf("nps_main.fg_host\n");
+//    nps_flightgear_init(nps_main.fg_host, nps_main.fg_port, nps_main.fg_time_offset);
+//  }
+
+#if DEBUG_NPS_TIME
+  printf("host_time_factor,host_time_elapsed,host_time_now,scaled_initial_time,sim_time_before,display_time_before,sim_time_after,display_time_after\n");
+#endif
+
+}
+
+void nps_main_run_sim_step_juav() {
+  nps_main_run_sim_step();
+}
+static bool juavBenchmarkLoggingMainStep = false;
+static int iterCountMain =0;
+static void nps_main_run_sim_step(void)
+{
+  //  printf("sim at %f\n", nps_main.sim_time);
+  struct timespec t0;
+  if(juavBenchmarkLoggingMainStep)
+    clock_gettime(CLOCK_REALTIME, &t0);
+
+  nps_atmosphere_update(SIM_DT);
+
+  nps_autopilot_run_systime_step();
+
+  nps_fdm_run_step(autopilot.launch, autopilot.commands, NPS_COMMANDS_NB);
+
+  nps_sensors_run_step(nps_main.sim_time);
+
+  nps_autopilot_run_step(nps_main.sim_time);
+
+  if(juavBenchmarkLoggingMainStep) {
+    iterCountMain++;
+    struct timespec t1;
+    clock_gettime(CLOCK_REALTIME, &t1); // Works on Linux
+    long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
+    printf("%d", iterCountMain);
+    printf(" %d\n", elapsed);
+  }
+
+}
+
+void nps_fdm_run_step_juav() {
+  nps_fdm_run_step(autopilot.launch, autopilot.commands, NPS_COMMANDS_NB);
+}
+
+void nps_main_display_juav() {
+  nps_main_display();
+}
+
+void set_nps_sim_time_juav(double d) {
+  nps_main.sim_time=d;
+}
+
+double get_nps_sim_time_juav() {
+  return nps_main.sim_time;
+}
+
+double get_nps_host_time_elapsed_juav() {
+  return host_time_elapsed_juav;
+}
+
+double get_nps_host_time_now_juav() {
+  return host_time_now_juav;
+}
+
+double get_nps_display_time_juav() {
+  return nps_main.display_time;
+}
+
+void set_nps_display_time_juav(double d) {
+  nps_main.display_time = d;
+}
+
+
+static void nps_main_display(void)
+{
+  //  printf("display at %f\n", nps_main.display_time);
+  nps_ivy_display();
+  if (nps_main.fg_host) {
+    if (nps_main.fg_fdm) {
+      nps_flightgear_send_fdm();
+    } else {
+      nps_flightgear_send();
+    }
+  }
+}
+
+
+void nps_set_time_factor(float time_factor)
+{
+  if (time_factor < 0.0 || time_factor > 100.0) {
+    return;
+  }
+  if (fabs(nps_main.host_time_factor - time_factor) < 0.01) {
+    return;
+  }
+
+  struct timeval tv_now;
+  double t_now, t_elapsed;
+
+  gettimeofday(&tv_now, NULL);
+  t_now = time_to_double(&tv_now);
+
+  /* "virtual" elapsed time with old time factor */
+  t_elapsed = (t_now - nps_main.scaled_initial_time) * nps_main.host_time_factor;
+
+  /* set new time factor */
+  nps_main.host_time_factor = time_factor;
+  printf("Time factor is %f\n", nps_main.host_time_factor);
+  fflush(stdout);
+
+  /* set new "virtual" scaled initial time using new time factor*/
+  nps_main.scaled_initial_time = t_now - t_elapsed / nps_main.host_time_factor;
+}
+
+
+void nps_main_parse_options_juav() {
+  nps_main.fg_host = NULL;
+  nps_main.fg_port = 5501;
+  nps_main.fg_time_offset = 0;
+  nps_main.js_dev = NULL;
+  nps_main.spektrum_dev = NULL;
+  nps_main.rc_script = 0;
+  nps_main.ivy_bus = NULL;
+  nps_main.host_time_factor = 1.0;
+  nps_main.fg_fdm = 0;
+}
 
 static bool_t nps_main_parse_options(int argc, char **argv)
 {
@@ -384,3 +643,79 @@ static bool_t nps_main_parse_options(int argc, char **argv)
   }
   return TRUE;
 }
+// sensor values pull juav
+// FdmBodyInertialRotVel
+double get_fdm_body_inetrial_rot_vel_p_juav() {
+  return fdm.body_inertial_rotvel.p;
+}
+double get_fdm_body_inetrial_rot_vel_q_juav() {
+  return fdm.body_inertial_rotvel.q;
+}
+double get_fdm_body_inetrial_rot_vel_r_juav() {
+  return fdm.body_inertial_rotvel.r;
+}
+// FdmBodyAccel
+double get_fdm_body_accel_x_juav() {
+  return fdm.body_accel.x;
+}
+double get_fdm_body_accel_y_juav() {
+  return fdm.body_accel.y;
+}
+double get_fdm_body_accel_z_juav() {
+  return fdm.body_accel.z;
+}
+//FdmBodyToImu
+double get_fdm_body_to_imu_juav(int row, int col) {
+  return sensors.body_to_imu_rmat.m[row*3+col];
+}
+//FDM Ltp To Body Quat;
+double get_fdm_ltp_to_body_quat_qi_juav() {
+  return fdm.ltp_to_body_quat.qi;
+}
+double get_fdm_ltp_to_body_quat_qx_juav(){
+  return fdm.ltp_to_body_quat.qx;
+}
+double get_fdm_ltp_to_body_quat_qy_juav(){
+  return fdm.ltp_to_body_quat.qy;
+}
+double get_fdm_ltp_to_body_quat_qz_juav(){
+  return fdm.ltp_to_body_quat.qz;
+}
+//FDM Ltp H
+double get_fdm_ltp_h_x_juav() {
+  return fdm.ltp_h.x;
+}
+double get_fdm_ltp_h_y_juav(){
+  return fdm.ltp_h.y;
+}
+double get_fdm_ltp_h_z_juav(){
+  return fdm.ltp_h.z;
+}
+//FDM hmsl
+double get_fdm_hmsl_juav(){
+  return fdm.hmsl;
+}
+//Fdm Ecef Ecef Vel
+double get_fdm_ecef_ecef_vel_x_juav(){
+  return fdm.ecef_ecef_vel.x;
+}
+double get_fdm_ecef_ecef_vel_y_juav(){
+  return fdm.ecef_ecef_vel.y;
+}
+double get_fdm_ecef_ecef_vel_z_juav(){
+  return fdm.ecef_ecef_vel.z;
+}
+//Fdm Ecef Pos
+double get_fdm_ecef_pos_x_juav(){
+  return fdm.ecef_pos.x;
+}
+double get_fdm_ecef_pos_y_juav(){
+  return fdm.ecef_pos.y;
+}
+double get_fdm_ecef_pos_z_juav(){
+  return fdm.ecef_pos.z;
+}
+double get_fdm_agl_juav() {
+  return fdm.agl;
+}
+

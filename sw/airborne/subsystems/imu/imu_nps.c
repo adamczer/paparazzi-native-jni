@@ -43,8 +43,9 @@ void imu_periodic(void)
 
 void imu_feed_gyro_accel(void)
 {
-
+//  printf("sensors.gyro = %f,%f,%f\n",sensors.gyro.value.x,sensors.gyro.value.y,sensors.gyro.value.z);
   RATES_ASSIGN(imu.gyro_unscaled, sensors.gyro.value.x, sensors.gyro.value.y, sensors.gyro.value.z);
+//  printf("sensors.accel = %f,%f,%f\n",sensors.accel.value.x,sensors.accel.value.y,sensors.accel.value.z);
   VECT3_ASSIGN(imu.accel_unscaled, sensors.accel.value.x, sensors.accel.value.y, sensors.accel.value.z);
 
   // set availability flags...
@@ -53,11 +54,35 @@ void imu_feed_gyro_accel(void)
 
 }
 
+void imu_feed_gyro_juav(double gyro_x, double gyro_y, double gyro_z)
+{
+  RATES_ASSIGN(imu.gyro_unscaled, gyro_x, gyro_y, gyro_z);
+//  printf("sensors.gyro_unscaled = %f,%f,%f\n",sensors.gyro.value.x,sensors.gyro.value.y,sensors.gyro.value.z);
+  imu_nps.gyro_available = TRUE;
+}
+
+void imu_feed_accel_juav(double accel_x, double accel_y, double accel_z) {
+  VECT3_ASSIGN(imu.accel_unscaled, accel_x, accel_y, accel_z);
+//  printf("sensors.accel_unscaled = %f,%f,%f\n",sensors.accel.value.x,sensors.accel.value.y,sensors.accel.value.z);
+  // set availability flags...
+  imu_nps.accel_available = TRUE;
+}
+
 
 void imu_feed_mag(void)
 {
 
   VECT3_ASSIGN(imu.mag_unscaled, sensors.mag.value.x, sensors.mag.value.y, sensors.mag.value.z);
+//  printf("sensors.mag_unscaled = %f,%f,%f\n",sensors.mag.value.x,sensors.mag.value.y,sensors.mag.value.z);
+  imu_nps.mag_available = TRUE;
+
+}
+
+void imu_feed_mag_juav(double mag_x, double mag_y, double mag_z)
+{
+
+  VECT3_ASSIGN(imu.mag_unscaled, mag_x, mag_y, mag_z);
+//  printf("sensors.mag_unscaled = %f,%f,%f\n",sensors.mag.value.x,sensors.mag.value.y,sensors.mag.value.z);
   imu_nps.mag_available = TRUE;
 
 }

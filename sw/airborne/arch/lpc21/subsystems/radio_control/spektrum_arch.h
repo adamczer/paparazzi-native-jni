@@ -51,6 +51,7 @@ extern const int16_t rc_spk_throw[RADIO_CONTROL_NB_CHANNEL];
 #define RcLinkGetCh() RcLink(Getch())
 
 #define RadioControlEventImpl(_received_frame_handler) {                \
+    printf("RadioControlEventImpl\n");\
     while (RcLinkChAvailable()) {                                       \
       int8_t c = RcLinkGetCh();                                         \
       switch (rc_spk_parser_status) {                                   \

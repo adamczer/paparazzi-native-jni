@@ -119,3 +119,8 @@ extern bool_t guidance_v_set_guided_z(float z);
   }
 
 #endif /* GUIDANCE_V_H */
+
+void juav_register_periodic_telemetry_send_vert_loop();
+void juav_register_periodic_telemetry_send_tune_vert();
+void juav_set_guidance_v_rc_delta_t(int newValue);
+void juav_set_guidance_v_rc_zd_sp(int newValue);

@@ -47,4 +47,6 @@ extern struct Int32Rates stabilization_rate_sum_err;
 extern struct Int32Rates stabilization_rate_fb_cmd;
 extern struct Int32Rates stabilization_rate_ff_cmd;
 
+void juav_register_periodic_telemetry_send_rate();
+
 #endif /* STABILIZATION_RATE */

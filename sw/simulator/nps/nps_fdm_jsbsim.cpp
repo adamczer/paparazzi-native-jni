@@ -175,6 +175,8 @@ void nps_fdm_init(double dt)
 
   init_ltp();
 
+  printf("nps_fdm_init is called ...");
+
 #if DEBUG_NPS_JSBSIM
   printf("fdm.time,fdm.body_ecef_accel.x,fdm.body_ecef_accel.y,fdm.body_ecef_accel.z,fdm.ltp_ecef_accel.x,fdm.ltp_ecef_accel.y,fdm.ltp_ecef_accel.z,fdm.ecef_ecef_accel.x,fdm.ecef_ecef_accel.y,fdm.ecef_ecef_accel.z,fdm.ltpprz_ecef_accel.z,fdm.ltpprz_ecef_accel.y,fdm.ltpprz_ecef_accel.z,fdm.agl\n");
 #endif
@@ -185,7 +187,8 @@ void nps_fdm_init(double dt)
 
 void nps_fdm_run_step(bool_t launch __attribute__((unused)), double *commands, int commands_nb)
 {
-
+//  printf("autopilot.launch = %d\n",launch);
+//  printf("autopilot.commands[] = %f,%f,%f,%f\n",commands[0],commands[1],commands[2],commands[3]);
 #ifdef NPS_JSBSIM_LAUNCHSPEED
   static bool_t already_launched = FALSE;
 
@@ -598,7 +601,7 @@ static void init_jsbsim(double dt)
 
 /**
  * Initialize the ltp from the JSBSim location.
- *
+ * LTP: Localtion Tangent Plane
  */
 static void init_ltp(void)
 {

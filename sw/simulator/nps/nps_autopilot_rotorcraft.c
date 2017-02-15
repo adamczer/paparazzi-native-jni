@@ -85,29 +85,34 @@ void nps_autopilot_run_systime_step(void)
 
 void nps_autopilot_run_step(double time)
 {
+//  printf("nps_autopilot_run_step\n");
 
   nps_electrical_run_step(time);
 
 #if RADIO_CONTROL && !RADIO_CONTROL_TYPE_DATALINK
   if (nps_radio_control_available(time)) {
     radio_control_feed();
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 #endif
 
   if (nps_sensors_gyro_available()) {
     imu_feed_gyro_accel();
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 
   if (nps_sensors_mag_available()) {
     imu_feed_mag();
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 
   if (nps_sensors_baro_available()) {
     float pressure = (float) sensors.baro.value;
     AbiSendMsgBARO_ABS(BARO_SIM_SENDER_ID, pressure);
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 
@@ -125,6 +130,7 @@ void nps_autopilot_run_step(double time)
 
   if (nps_sensors_gps_available()) {
     gps_feed_value();
+//    printf("nps_autopilot_rotorcraft\n");
     main_event();
   }
 
@@ -142,6 +148,11 @@ void nps_autopilot_run_step(double time)
   for (uint8_t i = 0; i < NPS_COMMANDS_NB; i++) {
     autopilot.commands[i] = (double)motor_mixing.commands[i] / MAX_PPRZ;
   }
+//  printf("motor_mixing.commands[0] = %f\n",motor_mixing.commands[0]);
+//  printf("motor_mixing.commands[1] = %f\n",motor_mixing.commands[1]);
+//  printf("motor_mixing.commands[2] = %f\n",motor_mixing.commands[2]);
+//  printf("motor_mixing.commands[3] = %f\n",motor_mixing.commands[3]);
+//  printf("autopilot.commands[0],[1],[2],[3] = %f, %f, %f ,%f\n",autopilot.commands[0],autopilot.commands[1],autopilot.commands[2],autopilot.commands[3]);
 }
 
 
@@ -173,4 +184,97 @@ void sim_overwrite_ins(void)
   VECT3_COPY(ltp_accel, fdm.ltpprz_ecef_accel);
   stateSetAccelNed_f(&ltp_accel);
 
+}
+
+void nps_autopilot_run_step_radio_juav(double time) {
+#if RADIO_CONTROL && !RADIO_CONTROL_TYPE_DATALINK
+  if (nps_radio_control_available(time)) {
+    radio_control_feed();
+    main_event();
+  }
+#endif
+}
+
+bool nps_autopilot_run_step_radio_juav_no_main_event(double time) {
+#if RADIO_CONTROL && !RADIO_CONTROL_TYPE_DATALINK
+  bool ret = nps_radio_control_available(time);
+//  printf("nps_radio_control_available(time) = %d\n", nps_radio_control_available(time));
+  if (ret) {
+//  printf("nps_radio_control_available(time) = TRUE");
+    radio_control_feed();
+//    main_event();
+  }
+  return ret;
+#endif
+  return false;
+}
+
+
+void sim_overwrite_ahrs_juav() {
+  if (nps_bypass_ahrs) {
+    sim_overwrite_ahrs();
+  }
+
+}
+void sim_overwrite_ins_juav() {
+  if (nps_bypass_ins) {
+    sim_overwrite_ins();
+  }
+}
+
+
+void handle_periodic_tasks_juav() {
+  handle_periodic_tasks();
+}
+
+void convert_motor_mixing_commands_to_autopilot_commands() {
+  /* scale final motor commands to 0-1 for feeding the fdm */
+  for (uint8_t i = 0; i < NPS_COMMANDS_NB; i++) {
+    autopilot.commands[i] = (double)motor_mixing.commands[i] / MAX_PPRZ;
+  }
+//  printf("autopilot.commands[0],[1],[2],[3] = %f, %f, %f ,%f\n",autopilot.commands[0],autopilot.commands[1],autopilot.commands[2],autopilot.commands[3]);
+}
+
+void nps_electrical_run_step_juav(double time) {
+  nps_electrical_run_step(time);
+}
+
+void nps_send_baro_reading_juav(float pressure) {
+  AbiSendMsgBARO_ABS(BARO_SIM_SENDER_ID, pressure);
+}
+
+void npsGyroFeedStepJuav() {
+  if (nps_sensors_gyro_available()) {
+    imu_feed_gyro_juav(sensors.gyro.value.x, sensors.gyro.value.y, sensors.gyro.value.z);
+    main_event();
+  }
+}
+
+void npsAccelFeedStepJuav() {
+  if (nps_sensors_gyro_available()) {
+    imu_feed_accel_juav(sensors.accel.value.x, sensors.accel.value.y, sensors.accel.value.z);
+    main_event();
+  }
+}
+
+void npsMagFeedStepJuav() {
+  if (nps_sensors_mag_available()) {
+    imu_feed_mag();
+    main_event();
+  }
+}
+
+void npsGpsFeedStepJuav() {
+  if (nps_sensors_gps_available()) {
+    gps_feed_value();
+    main_event();
+  }
+}
+
+void npsBaroFeedStepJuav() {
+  if (nps_sensors_baro_available()) {
+    float pressure = (float) sensors.baro.value;
+    AbiSendMsgBARO_ABS(BARO_SIM_SENDER_ID, pressure);
+    main_event();
+  }
 }

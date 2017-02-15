@@ -29,10 +29,11 @@ void nps_sensor_accel_run_step(struct NpsSensorAccel *accel, double time, struct
   if (time < accel->next_update) {
     return;
   }
-
   /* transform to imu frame */
   struct DoubleVect3 accelero_imu;
+//  printf("body_accel xyz= %f,%f,%f\n",fdm.body_accel.x,fdm.body_accel.y,fdm.body_accel.z);
   MAT33_VECT3_MUL(accelero_imu, *body_to_imu, fdm.body_accel);
+//  printf("body_to_imu = \n%f,%f,%f\n%f,%f,%f\n%f,%f,%f\n",body_to_imu[0],body_to_imu[1],body_to_imu[2],body_to_imu[3],body_to_imu[4],body_to_imu[5],body_to_imu[6],body_to_imu[7],body_to_imu[8]);
 
   /* compute accelero readings */
   MAT33_VECT3_MUL(accel->value, accel->sensitivity, accelero_imu);
@@ -53,7 +54,13 @@ void nps_sensor_accel_run_step(struct NpsSensorAccel *accel, double time, struct
   /* round signal to account for adc discretisation */
   DOUBLE_VECT3_ROUND(accel->value);
   /* saturate                                       */
+//  printf("NPS_ACCEL_MIN = %f\n", accel->min);
+//  printf("NPS_ACCEL_MAX = %f\n", accel->max);
+  //FIXME: some magic is happening here ;(
   VECT3_BOUND_CUBE(accel->value, accel->min, accel->max);
+//  printf("accel->value.x = %f\n",accel->value.x);
+//  printf("accel->value.y = %f\n",accel->value.y);
+//  printf("accel->value.z = %f\n",accel->value.z);
 
   accel->next_update += NPS_ACCEL_DT;
   accel->data_available = TRUE;

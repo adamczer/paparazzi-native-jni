@@ -3,6 +3,7 @@ import wx
 import sys
 import time
 import threading
+import re
 
 from os import path, getenv
 
@@ -40,6 +41,12 @@ class Aircraft(object):
 
 class MessagesFrame(wx.Frame):
     def message_recv(self, ac_id, msg):
+        if('GPS_INT' in str(msg)):
+            messge = str(msg);
+            match = re.search("ecef_x\s:\s(\d+), ecef_y\s:\s(\d+), ecef_z\s:\s(\d+)", messge)
+            if match != None :
+                print(str(match.group(1)) + " " + str(match.group(2)) + " " + str(match.group(3)))
+
         """Handle incoming messages
 
         Callback function for IvyMessagesInterface

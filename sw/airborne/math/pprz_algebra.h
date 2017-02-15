@@ -226,6 +226,8 @@ extern "C" {
     if ((_v).z > (_max)) (_v).z = (_max); else if ((_v).z < (_min)) (_v).z = (_min); \
   }
 
+#define MY_PRINTF(f_, ...) printf((f_), __VA_ARGS__)
+
 /*  */
 #define VECT3_BOUND_BOX(_v, _v_min, _v_max) {       \
     if ((_v).x > (_v_max).x) (_v).x = (_v_max).x; else if ((_v).x < (_v_min).x) (_v).x = (_v_min).x; \

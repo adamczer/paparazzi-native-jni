@@ -42,5 +42,19 @@ STATIC_INLINE void main_periodic(void);
 STATIC_INLINE void telemetry_periodic(void);
 STATIC_INLINE void failsafe_check(void);
 
+void main_event_juav();
+//used to break apart down to the autopilot level
+// drilling down to the guidance_h.c guidance_h_run(bool_t  in_flight)
+void main_periodic_juav_autopilot_prior();
+bool sys_time_check_and_ack_timer_main_periodic_juav();
+void handle_periodic_tasks_following_main_periodic_juav();
+void main_periodic_juav_autopilot_post();
+
+void main_periodic_juav_test();
+
+
+void main_event_juav_post(); //prior to autopilot rc
+void main_event_juav_prior();//after autopilot rc
+
 
 #endif /* MAIN_H */

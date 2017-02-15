@@ -64,6 +64,7 @@ void intermcu_set_actuators(pprz_t *command_values, uint8_t ap_mode __attribute_
 
 static inline void intermcu_parse_msg(struct transport_rx *trans, void (*rc_frame_handler)(void))
 {
+  printf("intermcu_parse_msg\n");
   /* Parse the Inter MCU message */
   uint8_t msg_id = trans->payload[1];
   switch (msg_id) {
