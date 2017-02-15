@@ -161,6 +161,10 @@ void juav_register_periodic_telemetry_send_hover_loop();
 void juav_register_periodic_telemetry_send_href();
 void juav_register_periodic_telemetry_send_tune_hover();
 
+void juav_guidance_h_update_reference_native();
+void juav_guidance_h_nav_enter_native();
+void juav_guidance_h_traj_run_native(bool in_flight);
+void juav_guidance_h_mode_nav_case_in_run(bool in_flight);
 
 struct Int32Vect2  guidance_h_cmd_earth;
 

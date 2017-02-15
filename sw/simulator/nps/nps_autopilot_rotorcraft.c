@@ -148,6 +148,11 @@ void nps_autopilot_run_step(double time)
   for (uint8_t i = 0; i < NPS_COMMANDS_NB; i++) {
     autopilot.commands[i] = (double)motor_mixing.commands[i] / MAX_PPRZ;
   }
+//  printf("motor_mixing.commands[0] = %f\n",motor_mixing.commands[0]);
+//  printf("motor_mixing.commands[1] = %f\n",motor_mixing.commands[1]);
+//  printf("motor_mixing.commands[2] = %f\n",motor_mixing.commands[2]);
+//  printf("motor_mixing.commands[3] = %f\n",motor_mixing.commands[3]);
+//  printf("autopilot.commands[0],[1],[2],[3] = %f, %f, %f ,%f\n",autopilot.commands[0],autopilot.commands[1],autopilot.commands[2],autopilot.commands[3]);
 }
 
 
@@ -227,6 +232,7 @@ void convert_motor_mixing_commands_to_autopilot_commands() {
   for (uint8_t i = 0; i < NPS_COMMANDS_NB; i++) {
     autopilot.commands[i] = (double)motor_mixing.commands[i] / MAX_PPRZ;
   }
+//  printf("autopilot.commands[0],[1],[2],[3] = %f, %f, %f ,%f\n",autopilot.commands[0],autopilot.commands[1],autopilot.commands[2],autopilot.commands[3]);
 }
 
 void nps_electrical_run_step_juav(double time) {

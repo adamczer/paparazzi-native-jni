@@ -94,7 +94,6 @@ void gv_set_ref(int32_t alt, int32_t speed, int32_t accel)
 
 void gv_update_ref_from_z_sp(int32_t z_sp)
 {
-
   gv_z_ref  += gv_zd_ref;
   gv_zd_ref += gv_zdd_ref;
 

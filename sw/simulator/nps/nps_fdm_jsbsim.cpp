@@ -187,7 +187,8 @@ void nps_fdm_init(double dt)
 
 void nps_fdm_run_step(bool_t launch __attribute__((unused)), double *commands, int commands_nb)
 {
-
+//  printf("autopilot.launch = %d\n",launch);
+//  printf("autopilot.commands[] = %f,%f,%f,%f\n",commands[0],commands[1],commands[2],commands[3]);
 #ifdef NPS_JSBSIM_LAUNCHSPEED
   static bool_t already_launched = FALSE;
 

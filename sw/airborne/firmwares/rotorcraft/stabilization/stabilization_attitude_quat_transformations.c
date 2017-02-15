@@ -75,17 +75,21 @@ void quat_from_earth_cmd_f(struct FloatQuat *quat, struct FloatVect2 *cmd, float
   const struct FloatVect3 ov = {cmd->y, -cmd->x, 0.0};
   /* quaternion from that orientation vector */
   struct FloatQuat q_rp;
+//  printf("C ov x,y,z = %f,%f,%f\n",ov.x,ov.y,ov.z);
   float_quat_of_orientation_vect(&q_rp, &ov);
+//  printf("C q_rp qi,qx,qy,qz= %f,%f,%f,%f\n",q_rp.qi,q_rp.qx,q_rp.qy,q_rp.qz);
 
   /* as rotation matrix */
   struct FloatRMat R_rp;
   float_rmat_of_quat(&R_rp, &q_rp);
+//  printf("C \n%f,%f,%f\n%f,%f,%f\n%f,%f,%f\n",R_rp.m[0],R_rp.m[1],R_rp.m[2],R_rp.m[3],R_rp.m[4],R_rp.m[5],R_rp.m[6],R_rp.m[7],R_rp.m[8]);
   /* body x-axis (before heading command) is first column */
   struct FloatVect3 b_x;
   VECT3_ASSIGN(b_x, R_rp.m[0], R_rp.m[3], R_rp.m[6]);
   /* body z-axis (thrust vect) is last column */
   struct FloatVect3 thrust_vect;
   VECT3_ASSIGN(thrust_vect, R_rp.m[2], R_rp.m[5], R_rp.m[8]);
+//  printf("C thrust vector x,y,z= %f, %f, %f\n",thrust_vect.x,thrust_vect.y,thrust_vect.z);
 
   /// @todo optimize yaw angle calculation
 
@@ -101,20 +105,25 @@ void quat_from_earth_cmd_f(struct FloatQuat *quat, struct FloatVect2 *cmd, float
 
   // desired heading vect in earth x-y plane
   const struct FloatVect3 psi_vect = {cosf(heading), sinf(heading), 0.0};
-
+//  printf("C psi_vect x,y,z = %f, %f, %f\n",psi_vect.x,psi_vect.y,psi_vect.z);
   /* projection of desired heading onto body x-y plane
    * b = v - dot(v,n)*n
    */
   float dot = VECT3_DOT_PRODUCT(psi_vect, thrust_vect);
+//  printf("C dot = %f\n",dot);
   struct FloatVect3 dotn;
   VECT3_SMUL(dotn, thrust_vect, dot);
+//  printf("C dotn x,y,z = %f, %f, %f\n",dotn.x,dotn.y,dotn.z);
 
   // b = v - dot(v,n)*n
   struct FloatVect3 b;
   VECT3_DIFF(b, psi_vect, dotn);
+//  printf("C b x,y,z = %f, %f, %f\n",b.x,b.y,b.z);
   dot = VECT3_DOT_PRODUCT(b_x, b);
+//  printf("C dot2 = %f\n",dot);
   struct FloatVect3 cross;
   VECT3_CROSS_PRODUCT(cross, b_x, b);
+//  printf("C cross x,y,z = %f, %f, %f\n",cross.x,cross.y,cross.z); //not the same
   // norm of the cross product
   float nc = FLOAT_VECT3_NORM(cross);
   // angle = atan2(norm(cross(a,b)), dot(a,b))

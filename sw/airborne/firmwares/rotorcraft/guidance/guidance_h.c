@@ -434,6 +434,7 @@ void guidance_h_run(bool_t  in_flight)
 //      break;
 
     case GUIDANCE_H_MODE_NAV:
+//      printf("GUIDANCE_H_MODE_NAV\n");
       if (!in_flight) {
         guidance_h_nav_enter();
       }
@@ -448,7 +449,6 @@ void guidance_h_run(bool_t  in_flight)
       } else {
 //        printf("horizontal_mode != HORIZONTAL_MODE_ATTITUDE\n");
         INT32_VECT2_NED_OF_ENU(guidance_h.sp.pos, navigation_carrot);
-
         guidance_h_update_reference();
 
         /* set psi command */
@@ -535,15 +535,18 @@ static void guidance_h_traj_run(bool_t in_flight) //TODO PORT
                                        BFP_OF_REAL(RadOfDeg(40), INT32_ANGLE_FRAC));
   static const int32_t total_max_bank = BFP_OF_REAL(RadOfDeg(45), INT32_ANGLE_FRAC);
 
+//  printf("traj_max_bank = %d\n",traj_max_bank);
+//  printf("total_max_bank = %d\n",total_max_bank);
   /* compute position error    */
   VECT2_DIFF(guidance_h_pos_err, guidance_h.ref.pos, *stateGetPositionNed_i());
   /* saturate it               */
   VECT2_STRIM(guidance_h_pos_err, -MAX_POS_ERR, MAX_POS_ERR);
-
+//  printf("C guidance_h_pos_err x,y = %d,%d\n",guidance_h_pos_err.x,guidance_h_pos_err.y); //GOOD
   /* compute speed error    */
   VECT2_DIFF(guidance_h_speed_err, guidance_h.ref.speed, *stateGetSpeedNed_i());
   /* saturate it               */
   VECT2_STRIM(guidance_h_speed_err, -MAX_SPEED_ERR, MAX_SPEED_ERR);
+//  printf("C guidance_h_speed_err x,y = %d,%d\n",guidance_h_speed_err.x,guidance_h_speed_err.y); //GOOD
 
   /* run PID */
   int32_t pd_x =
@@ -801,5 +804,47 @@ void guidance_h_run_juav(bool in_flight)
 
     default:
       break;
+  }
+}
+
+void juav_guidance_h_update_reference_native() {
+  guidance_h_update_reference();
+}
+
+void juav_guidance_h_nav_enter_native() {
+  guidance_h_nav_enter();
+}
+
+void juav_guidance_h_traj_run_native(bool in_flight) {
+  guidance_h_traj_run(in_flight);
+}
+
+void juav_guidance_h_mode_nav_case_in_run(bool in_flight) {
+
+//      printf("horizontal_mode == %d\n", horizontal_mode);
+  if (horizontal_mode == HORIZONTAL_MODE_ATTITUDE) {
+//        printf("horizontal_mode == HORIZONTAL_MODE_ATTITUDE\n");
+//    struct Int32Eulers sp_cmd_i;
+//    sp_cmd_i.phi = nav_roll;
+//    sp_cmd_i.theta = nav_pitch;
+//    sp_cmd_i.psi = nav_heading;
+//    stabilization_attitude_set_rpy_setpoint_i(&sp_cmd_i);
+  } else {
+//        printf("horizontal_mode != HORIZONTAL_MODE_ATTITUDE\n");
+//    INT32_VECT2_NED_OF_ENU(guidance_h.sp.pos, navigation_carrot);
+//    guidance_h_update_reference();
+
+//    /* set psi command */
+//    guidance_h.sp.heading = nav_heading;
+//    INT32_ANGLE_NORMALIZE(guidance_h.sp.heading);
+//#if GUIDANCE_INDI
+//        guidance_indi_run(in_flight, guidance_h.sp.heading);
+//#else
+    /* compute x,y earth commands */
+//    guidance_h_traj_run(in_flight);
+    /* set final attitude setpoint */
+    stabilization_attitude_set_earth_cmd_i(&guidance_h_cmd_earth,
+                                           guidance_h.sp.heading);
+//#endif
   }
 }

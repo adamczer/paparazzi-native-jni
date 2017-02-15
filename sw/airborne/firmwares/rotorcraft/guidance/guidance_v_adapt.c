@@ -186,4 +186,9 @@ void gv_adapt_run(int32_t zdd_meas, int32_t thrust_applied, int32_t zd_ref)
   static const int32_t min_out = BFP_OF_REAL(9.81, GV_ADAPT_X_FRAC) /
                                  (GUIDANCE_V_ADAPT_MAX_HOVER_THROTTLE * MAX_PPRZ);
   Bound(gv_adapt_X, min_out, max_out);
+
+
+//  printf("max_out = %d\n",max_out);
+//  printf("min_out = %d\n",min_out);
+//  printf("gv_adapt_X = %d\n",gv_adapt_X);
 }

@@ -121,5 +121,31 @@ void set_stabilization_cmd(int yaw,int pitch, int roll);
 void juav_register_periodic_telemetry_send_att();
 void juav_register_periodic_telemetry_send_att_ref();
 void juav_register_periodic_telemetry_send_ahrs_ref_quat();
+void juav_stabilization_attitude_run_native(bool enable_integrator);
+void juav_stabilization_attitude_set_rpy_setpoint_i_native(int psi, int phi, int theta);
+
+int get_att_ref_quat_i_euler_psi_juav();
+int get_att_ref_quat_i_euler_phi_juav();
+int get_att_ref_quat_i_euler_theta_juav();
+int get_att_ref_quat_i_model_two_zeta_omega_p_juav();
+int get_att_ref_quat_i_model_two_zeta_omega_q_juav();
+int get_att_ref_quat_i_model_two_zeta_omega_r_juav();
+int get_att_ref_quat_i_model_two_omega2_p_juav();
+int get_att_ref_quat_i_model_two_omega2_q_juav();
+int get_att_ref_quat_i_model_two_omega2_r_juav();
+float get_att_ref_quat_i_model_zeta_p_juav();
+float get_att_ref_quat_i_model_zeta_q_juav();
+float get_att_ref_quat_i_model_zeta_r_juav();
+float get_att_ref_quat_i_model_omega_p_juav();
+float get_att_ref_quat_i_model_omega_q_juav();
+float get_att_ref_quat_i_model_omega_r_juav();
+
+
+int get_att_ref_quat_i_saturation_max_accel_p_juav();
+int get_att_ref_quat_i_saturation_max_accel_q_juav();
+int get_att_ref_quat_i_saturation_max_accel_r_juav();
+int get_att_ref_quat_i_saturation_max_rate_p_juav();
+int get_att_ref_quat_i_saturation_max_rate_q_juav();
+int get_att_ref_quat_i_saturation_max_rate_r_juav();
 
 #endif /* STABILIZATION_ATTITUDE_QUAT_INT_H */

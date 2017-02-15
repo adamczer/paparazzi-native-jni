@@ -416,6 +416,7 @@ void main_event_juav_prior()
 
   if (autopilot_rc) {
     RadioControlEvent(autopilot_on_rc_frame_juav);
+//    RadioControlEvent(autopilot_on_rc_frame);
   }
 }
 

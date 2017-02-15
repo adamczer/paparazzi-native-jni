@@ -103,13 +103,16 @@ void attitude_ref_quat_int_update(struct AttRefQuatInt *ref, struct Int32Quat *s
                                   float dt __attribute__((unused)))
 {
   /* integrate reference attitude            */
+//  printf("C ref p,q,r = %d,%d,%d\n",ref->rate.p,ref->rate.q,ref->rate.r);
   const struct Int32Rates rate_ref_scaled = {
     OFFSET_AND_ROUND(ref->rate.p, (REF_RATE_FRAC - INT32_RATE_FRAC)),
     OFFSET_AND_ROUND(ref->rate.q, (REF_RATE_FRAC - INT32_RATE_FRAC)),
     OFFSET_AND_ROUND(ref->rate.r, (REF_RATE_FRAC - INT32_RATE_FRAC))
   };
+//  printf("C rate_ref_scaled p,q,r = %d,%d,%d\n",rate_ref_scaled.p,rate_ref_scaled.q,rate_ref_scaled.r);
   struct Int32Quat qdot;
   int32_quat_derivative(&qdot, &rate_ref_scaled, &ref->quat);
+//  printf("C qdot qi,qx,qy,qz = %d,%d,%d,%d\n",qdot.qi,qdot.qx,qdot.qy,qdot.qz);
   qdot.qi = qdot.qi >> F_UPDATE_RES;
   qdot.qx = qdot.qx >> F_UPDATE_RES;
   qdot.qy = qdot.qy >> F_UPDATE_RES;

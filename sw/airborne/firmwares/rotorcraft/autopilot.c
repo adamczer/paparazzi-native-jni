@@ -309,6 +309,7 @@ void autopilot_init(void)//TODO PORT
   autopilot_arming_init();
 
   nav_init();
+  printf("\nCALLED nav_init\n");
   guidance_h_init();
   guidance_v_init();
 
@@ -376,8 +377,9 @@ void juav_register_periodic_telemetry_send_rotorcraft_rc(void) {
 #define NAV_PRESCALER (PERIODIC_FREQUENCY / NAV_FREQ)
 void autopilot_periodic(void) //TODO Port
 {
+
 //  printf("autopilot_mode = %d\n",autopilot_mode);
-//    printf("autopilot_periodic\n");
+//    printf("autopilot_periodic CCCC\n");
 
 //  RunOnceEvery(NAV_PRESCALER, compute_dist2_to_home());
 
@@ -407,7 +409,7 @@ void autopilot_periodic(void) //TODO Port
    * or just "detected" ground, go to KILL mode.
    */
   if (autopilot_mode == AP_MODE_FAILSAFE) {
-      printf("autopilot_mode == AP_MODE_FAILSAFE\n");
+//      printf("autopilot_mode == AP_MODE_FAILSAFE\n");
     if (!autopilot_in_flight) {
       autopilot_set_mode(AP_MODE_KILL);
     }
@@ -433,10 +435,12 @@ void autopilot_periodic(void) //TODO Port
    * downwards velocity setpoints.
    */
   if (autopilot_mode == AP_MODE_KILL) {
+//    printf("autopilot_mode == AP_MODE_KILL\n");
     SetCommands(commands_failsafe);
   } else {
     guidance_v_run(autopilot_in_flight);
-//    guidance_h_run(autopilot_in_flight);
+    guidance_h_run(autopilot_in_flight);
+//    printf("Stabilzation Commands [0],[1],[2],[3] = %f, %f, %f, %f\n",stabilization_cmd[0],stabilization_cmd[1],stabilization_cmd[2],stabilization_cmd[3]);
     SetRotorcraftCommands(stabilization_cmd, autopilot_in_flight, autopilot_motors_on);
   }
 
@@ -632,6 +636,7 @@ bool_t autopilot_guided_goto_body_relative(float dx, float dy, float dz, float d
 void autopilot_check_in_flight(bool_t motors_on) //TODO Port
 {
 //    printf("autopilot_check_in_flight\n");
+//  printf("autopilot_in_flight_counter = %d\n",autopilot_in_flight_counter);
   if (autopilot_in_flight) {
     if (autopilot_in_flight_counter > 0) {
       /* probably in_flight if thrust, speed and accel above IN_FLIGHT_MIN thresholds */
@@ -775,18 +780,18 @@ void autopilot_on_rc_frame(void) //TODO Port
   if (autopilot_mode != AP_MODE_FAILSAFE && autopilot_mode != AP_MODE_HOME) {
 
     /* if there are some commands that should always be set from RC, do it */
-#ifdef SetAutoCommandsFromRC
-    printf("SetAutoCommandsFromRC defined\n");
-    SetAutoCommandsFromRC(commands, radio_control.values);
-#endif
-
-    /* if not in NAV_MODE set commands from the rc */
-#ifdef SetCommandsFromRC
-    printf("SetCommandsFromRC defined\n");
-    if (autopilot_mode != AP_MODE_NAV) {
-      SetCommandsFromRC(commands, radio_control.values);
-    }
-#endif
+//#ifdef SetAutoCommandsFromRC
+//    printf("SetAutoCommandsFromRC defined\n");
+//    SetAutoCommandsFromRC(commands, radio_control.values);
+//#endif
+//
+//    /* if not in NAV_MODE set commands from the rc */
+//#ifdef SetCommandsFromRC
+//    printf("SetCommandsFromRC defined\n");
+//    if (autopilot_mode != AP_MODE_NAV) {
+//      SetCommandsFromRC(commands, radio_control.values);
+//    }
+//#endif
 
     guidance_v_read_rc();
 //    guidance_h_read_rc(autopilot_in_flight);
@@ -937,6 +942,9 @@ bool get_autopilot_in_flight_juav() {
 //test plumbing
 void guidance_h_run_native_test_juav(bool in_flight) {
     guidance_h_run(in_flight); //this done in java
+}
+void guidance_v_run_native_test_juav(bool in_flight) {
+  guidance_v_run(in_flight); //this done in java
 }
 
 int juav_get_radio_control_value(int index) {
@@ -1185,4 +1193,16 @@ void juav_set_stab_att_sp_euler_psi(int psi) {
 }
 void juav_set_stab_att_sp_euler_theta(int theta) {
   stab_att_sp_euler.theta = theta;
+}
+void juav_guidance_h_mode_changed(short newMode) {
+  guidance_h_mode_changed(newMode);
+}
+void juav_guidance_v_mode_changed(short newMode) {
+  guidance_v_mode_changed(newMode);
+}
+void juav_guidance_h_read_rc(bool in_flight) {
+  guidance_h_read_rc(in_flight);
+}
+void juav_autopilot_set_mode_native(short new_mode) {
+  autopilot_set_mode(new_mode);
 }

@@ -307,6 +307,11 @@ void juav_set_stab_att_sp_euler_phi(int phi);
 void juav_set_stab_att_sp_euler_psi(int psi);
 void juav_set_stab_att_sp_euler_theta(int theta);
 
+void guidance_v_run_native_test_juav(bool in_flight);
+void juav_guidance_h_mode_changed(short newMode);
+void juav_guidance_v_mode_changed(short newMode);
+void juav_guidance_h_read_rc(bool in_flight);
 
+void juav_autopilot_set_mode_native(short new_mode);
 
 #endif /* AUTOPILOT_H */
