@@ -8,6 +8,15 @@
 
 void  nps_sensor_gyro_init(struct NpsSensorGyro *gyro, double time)
 {
+//    printf("NPS_GYRO_MIN = %d\n",NPS_GYRO_MIN);
+//  printf("NPS_GYRO_MAX = %d\n",NPS_GYRO_MAX);
+//  printf("IMU_GYRO_P_SENS = %f\n",IMU_GYRO_P_SENS);
+//  printf("IMU_GYRO_Q_SENS = %f\n",IMU_GYRO_Q_SENS);
+//  printf("IMU_GYRO_R_SENS = %f\n",IMU_GYRO_R_SENS);
+//  printf("IMU_GYRO_Q_NEUTRAL = %d\n",IMU_GYRO_Q_NEUTRAL);
+//  printf("IMU_GYRO_R_NEUTRAL = %d\n",IMU_GYRO_R_NEUTRAL);
+//  printf("IMU_GYRO_P_NEUTRAL = %d\n",IMU_GYRO_P_NEUTRAL);
+//    printf("NPS_GYRO_DT = %f\n",NPS_ACCEL_BIAS_X);
   FLOAT_VECT3_ZERO(gyro->value);
   gyro->min = NPS_GYRO_MIN;
   gyro->max = NPS_GYRO_MAX;

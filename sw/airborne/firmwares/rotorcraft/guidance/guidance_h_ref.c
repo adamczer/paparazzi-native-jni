@@ -115,8 +115,9 @@ void gh_set_ref(struct Int32Vect2 pos, struct Int32Vect2 speed, struct Int32Vect
 
 void gh_update_ref_from_pos_sp(struct Int32Vect2 pos_sp)
 {
-
-  VECT2_ADD(gh_ref.pos, gh_ref.speed);
+//  printf("C gh_ref.pos x,y= %d,%d\n",gh_ref.pos.x,gh_ref.pos.y);
+//  printf("C gh_ref.speed x,y= %d,%d\n",gh_ref.speed.x,gh_ref.speed.y);
+    VECT2_ADD(gh_ref.pos, gh_ref.speed);
   VECT2_ADD(gh_ref.speed, gh_ref.accel);
 
   // compute the "speed part" of accel = -2*zeta*omega*speed -omega^2(pos - pos_sp)

@@ -35,6 +35,7 @@
 #include "math/pprz_algebra_int.h"
 #include "state.h"
 #include <time.h>
+#include <stdio.h>
 
 struct Int32AttitudeGains stabilization_gains = {
   {STABILIZATION_ATTITUDE_PHI_PGAIN, STABILIZATION_ATTITUDE_THETA_PGAIN, STABILIZATION_ATTITUDE_PSI_PGAIN },
@@ -71,7 +72,9 @@ struct AttRefQuatInt att_ref_quat_i;
 #define GAIN_PRESCALER_P 12
 #define GAIN_PRESCALER_D 3
 #define GAIN_PRESCALER_I 3
-static bool juavBenchmarkLogging = false;
+static bool juavBenchmarkLogging = true;
+
+FILE *stabTimingLog;
 
 #if PERIODIC_TELEMETRY
 #include "subsystems/datalink/telemetry.h"
@@ -137,6 +140,12 @@ static void send_ahrs_ref_quat(struct transport_tx *trans, struct link_device *d
 //TODO ALL THIS
 void stabilization_attitude_init(void)
 {
+    stabTimingLog = fopen("stabilization.log", "w");
+    if (stabTimingLog == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
 
   attitude_ref_quat_int_init(&att_ref_quat_i);
 
@@ -263,9 +272,12 @@ static void attitude_run_fb(int32_t fb_commands[], struct Int32AttitudeGains *ga
 //         fb_commands[COMMAND_ROLL]);
 
 }
-static int iterCount = 0;
+//static int iterCount = 0;
 void stabilization_attitude_run(bool_t enable_integrator)
 {
+  struct timespec t0;
+  if(juavBenchmarkLogging)
+    clock_gettime(CLOCK_REALTIME, &t0);
 //  printf("stabilization_attitude_run\n");
 
   /*
@@ -277,9 +289,6 @@ void stabilization_attitude_run(bool_t enable_integrator)
 //  printf("att_ref_quat_i->saturation->max_accel.p,q,r = %d,%d,%d\n",att_ref_quat_i.saturation.max_accel.p,att_ref_quat_i.saturation.max_accel.q,att_ref_quat_i.saturation.max_accel.r);
 //  printf("stab_att_sp_quat qi,qx,qy,qz = %d,%d,%d,%d\n",stab_att_sp_quat.qi,stab_att_sp_quat.qx,stab_att_sp_quat.qy,stab_att_sp_quat.qz);
   attitude_ref_quat_int_update(&att_ref_quat_i, &stab_att_sp_quat, dt);
-  struct timespec t0;
-  if(juavBenchmarkLogging)
-    clock_gettime(CLOCK_REALTIME, &t0);
 
   /*
    * Compute errors for feedback
@@ -340,19 +349,20 @@ void stabilization_attitude_run(bool_t enable_integrator)
 
 
   if(juavBenchmarkLogging) {
-    iterCount++;
+//      stabTimingLog
+//    iterCount++;
     struct timespec t1;
     clock_gettime(CLOCK_REALTIME, &t1); // Works on Linux
     long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
-    printf("%d", iterCount);
-    printf(" %d\n", elapsed);
+      fprintf(stabTimingLog, "%ld\n", elapsed);
+      fflush(stabTimingLog);  //Prints to a file
   }
 }
 
 //TODO PORT THIS
 void stabilization_attitude_read_rc(bool_t in_flight, bool_t in_carefree, bool_t coordinated_turn)
 {
-  printf("stabilization_attitude_read_rc\n");
+//  printf("stabilization_attitude_read_rc\n");
   struct FloatQuat q_sp;
 #if USE_EARTH_BOUND_RC_SETPOINT
     printf("USE_EARTH_BOUND_RC_SETPOINT\n");

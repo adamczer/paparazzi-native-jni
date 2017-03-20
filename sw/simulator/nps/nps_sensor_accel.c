@@ -9,6 +9,25 @@
 
 void nps_sensor_accel_init(struct NpsSensorAccel *accel, double time)
 {
+//  printf("NPS_ACCEL_MIN = %d\n",NPS_ACCEL_MIN);
+//  printf("NPS_ACCEL_MAX = %d\n",NPS_ACCEL_MAX);
+//  printf("IMU_ACCEL_X_SIGN = %f\n",IMU_ACCEL_X_SIGN);
+//  printf("IMU_ACCEL_Y_SIGN = %f\n",IMU_ACCEL_Y_SIGN);
+//  printf("IMU_ACCEL_Z_SIGN = %f\n",IMU_ACCEL_Z_SIGN);
+//  printf("IMU_ACCEL_X_NEUTRAL = %f\n",IMU_ACCEL_X_NEUTRAL);
+//  printf("IMU_ACCEL_Y_NEUTRAL = %f\n",IMU_ACCEL_Y_NEUTRAL);
+//  printf("IMU_ACCEL_Z_NEUTRAL = %f\n",IMU_ACCEL_Z_NEUTRAL);
+//  printf("NPS_ACCEL_NOISE_STD_DEV_X = %f\n",NPS_ACCEL_NOISE_STD_DEV_X);
+//  printf("NPS_ACCEL_NOISE_STD_DEV_Y = %f\n",NPS_ACCEL_NOISE_STD_DEV_Y);
+//  printf("NPS_ACCEL_NOISE_STD_DEV_Z = %f\n",NPS_ACCEL_NOISE_STD_DEV_Z);
+//    printf("NPS_ACCEL_BIAS_X = %f\n",NPS_ACCEL_BIAS_X);
+//    printf("NPS_ACCEL_BIAS_Y = %f\n",NPS_ACCEL_BIAS_Y);
+//    printf("NPS_ACCEL_BIAS_Z = %f\n",NPS_ACCEL_BIAS_Z);
+//    printf("IMU_ACCEL_X_SENS = %f\n",IMU_ACCEL_X_SENS);
+//    printf("IMU_ACCEL_Y_SENS = %f\n",IMU_ACCEL_Y_SENS);
+//    printf("IMU_ACCEL_Z_SENS = %f\n",IMU_ACCEL_Z_SENS);
+//    printf("NPS_ACCEL_DT = %f\n",NPS_ACCEL_DT);
+
   FLOAT_VECT3_ZERO(accel->value);
   accel->min = NPS_ACCEL_MIN;
   accel->max = NPS_ACCEL_MAX;

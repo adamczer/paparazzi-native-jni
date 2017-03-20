@@ -7,6 +7,15 @@
 
 void nps_sensor_mag_init(struct NpsSensorMag *mag, double time)
 {
+//    printf("NPS_MAG_MIN = %d\n",NPS_MAG_MIN);
+//  printf("NPS_MAG_MAX = %d\n",NPS_MAG_MAX);
+//  printf("NPS_MAG_IMU_TO_SENSOR_PHI = %f\n",NPS_MAG_IMU_TO_SENSOR_PHI);
+//  printf("NPS_MAG_IMU_TO_SENSOR_THETA = %f\n",NPS_MAG_IMU_TO_SENSOR_THETA);
+//  printf("NPS_MAG_IMU_TO_SENSOR_PSI = %f\n",NPS_MAG_IMU_TO_SENSOR_PSI);
+//  printf("NPS_MAG_NOISE_STD_DEV_X = %f\n",NPS_MAG_NOISE_STD_DEV_X);
+//  printf("NPS_MAG_NOISE_STD_DEV_Y = %f\n",NPS_MAG_NOISE_STD_DEV_Y);
+//  printf("NPS_MAG_NOISE_STD_DEV_Z = %f\n",NPS_MAG_NOISE_STD_DEV_Z);
+//  printf("NPS_MAG_DT = %f\n",NPS_MAG_DT);
   VECT3_ASSIGN(mag->value, 0., 0., 0.);
   mag->min = NPS_MAG_MIN;
   mag->max = NPS_MAG_MAX;

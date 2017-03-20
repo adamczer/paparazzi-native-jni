@@ -193,7 +193,7 @@ void guidance_v_init(void)//TODO PORT
 #endif
 
 #if PERIODIC_TELEMETRY
-  printf("PERIODIC_TELEMETRY guidance_v\n");
+//  printf("PERIODIC_TELEMETRY guidance_v\n");
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VERT_LOOP, send_vert_loop);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_TUNE_VERT, send_tune_vert);
 #endif

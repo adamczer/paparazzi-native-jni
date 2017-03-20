@@ -314,4 +314,44 @@ void juav_guidance_h_read_rc(bool in_flight);
 
 void juav_autopilot_set_mode_native(short new_mode);
 
+//For Fiji
+
+int  juav_fiji_stateGetPositionNedIX();
+int  juav_fiji_stateGetPositionNedIY();
+int  juav_fiji_stateGetPositionNedIZ();
+int  juav_fiji_stateGetSpeedNedIX();
+int  juav_fiji_stateGetSpeedNedIY();
+int  juav_fiji_stateGetSpeedNedIZ();
+int  juav_fiji_stateGetNedToBodyRMatI_10();
+int  juav_fiji_stateGetNedToBodyRMatI_11();
+int  juav_fiji_stateGetNedToBodyRMatI_12();
+int  juav_fiji_stateGetNedToBodyRMatI_13();
+int  juav_fiji_stateGetNedToBodyRMatI_14();
+int  juav_fiji_stateGetNedToBodyRMatI_15();
+int  juav_fiji_stateGetNedToBodyRMatI_16();
+int  juav_fiji_stateGetNedToBodyRMatI_17();
+int  juav_fiji_stateGetNedToBodyRMatI_18();
+int  juav_fiji_stateGetNedToBodyEulersIPsiInt();
+int  juav_fiji_stateGetNedToBodyEulersITheataInt();
+int  juav_fiji_stateGetNedToBodyEulersIPhiInt();
+float  juav_fiji_stateGetNedToBodyEulersIPsiFloat();
+float  juav_fiji_stateGetNedToBodyEulersITheataFloat();
+float  juav_fiji_stateGetNedToBodyEulersIPhiFloat();
+int  juav_fiji_stateGetAccelNedIX();
+int  juav_fiji_stateGetAccelNedIY();
+int  juav_fiji_stateGetAccelNedIZ();
+float juav_fiji_stateGetSpeedNedFX();
+float juav_fiji_stateGetSpeedNedFY();
+float juav_fiji_stateGetSpeedNedFZ();
+float juav_fiji_stateGetAccelNedFX();
+float juav_fiji_stateGetAccelNedFY();
+float juav_fiji_stateGetAccelNedFZ();
+int juav_fiji_getNavigationCarrotX();
+int juav_fiji_getNavigationCarrotY();
+int juav_fiji_getNavigationCarrotZ();
+void juav_fiji_setAutopilotGroundDetected(bool newValue);
+void juav_fiji_setAutopilotDetectGroundOnce(bool newValue);
+
+long getNextAutopilotIterationIndex();
 #endif /* AUTOPILOT_H */
+

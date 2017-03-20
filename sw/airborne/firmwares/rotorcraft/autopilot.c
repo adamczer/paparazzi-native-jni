@@ -27,6 +27,8 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
+#include <time.h>
 #include "firmwares/rotorcraft/autopilot.h"
 
 #include "mcu_periph/uart.h"
@@ -160,7 +162,7 @@ PRINT_CONFIG_MSG("Enabled UNLOCKED_HOME_MODE since MODE_AUTO2 is AP_MODE_HOME")
 
 void send_autopilot_version(struct transport_tx *trans, struct link_device *dev)
 {
-  printf("send_autopilot_version\n");
+//  printf("send_autopilot_version\n");
   static uint32_t ap_version = PPRZ_VERSION_INT;
   static char *ver_desc = PPRZ_VERSION_DESC;
   pprz_msg_send_AUTOPILOT_VERSION(trans, dev, AC_ID, &ap_version, strlen(ver_desc), ver_desc);
@@ -284,9 +286,36 @@ static void send_rotorcraft_cmd(struct transport_tx *trans, struct link_device *
                                &stabilization_cmd[COMMAND_THRUST]);
 }
 
+FILE *autopilotLog;
 
+FILE *guidanceHLog;
+FILE *guidanceVLog;
+static long autopilotIteration;
+long getNextAutopilotIterationIndex() {
+    return autopilotIteration;
+}
 void autopilot_init(void)//TODO PORT
 {
+    autopilotIteration = 0;
+    autopilotLog = fopen("autopilot_periodic.log", "w");
+    if (autopilotLog == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    guidanceHLog = fopen("guidance_h_run.log", "w");
+    if (autopilotLog == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    guidanceVLog = fopen("guidance_v_run.log", "w");
+    if (autopilotLog == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
 //    printf("autopilot_init*********************************************************************************\n");
   /* mode is finally set at end of init if MODE_STARTUP is not KILL */
   autopilot_mode = AP_MODE_KILL;
@@ -309,7 +338,7 @@ void autopilot_init(void)//TODO PORT
   autopilot_arming_init();
 
   nav_init();
-  printf("\nCALLED nav_init\n");
+//  printf("\nCALLED nav_init\n");
   guidance_h_init();
   guidance_v_init();
 
@@ -377,6 +406,8 @@ void juav_register_periodic_telemetry_send_rotorcraft_rc(void) {
 #define NAV_PRESCALER (PERIODIC_FREQUENCY / NAV_FREQ)
 void autopilot_periodic(void) //TODO Port
 {
+    struct timespec autoPilotPeriodicStart;
+    clock_gettime(CLOCK_REALTIME, &autoPilotPeriodicStart);
 
 //  printf("autopilot_mode = %d\n",autopilot_mode);
 //    printf("autopilot_periodic CCCC\n");
@@ -402,6 +433,7 @@ void autopilot_periodic(void) //TODO Port
   } else {
     // otherwise always call nav_periodic_task so that carrot is always updated in GCS for other modes
     RunOnceEvery(NAV_PRESCALER, nav_periodic_task());
+    //  nav_periodic_task();
   }
 
 
@@ -434,16 +466,52 @@ void autopilot_periodic(void) //TODO Port
    * If in FAILSAFE mode, run normal loops with failsafe attitude and
    * downwards velocity setpoints.
    */
+    struct timespec guidanceVRunStart;
+    struct timespec guidanceHRunStart;
+    struct timespec guidanceVRunEnd;
+    struct timespec guidanceHRunEnd;
+    bool ranGuidance = false;
   if (autopilot_mode == AP_MODE_KILL) {
 //    printf("autopilot_mode == AP_MODE_KILL\n");
     SetCommands(commands_failsafe);
   } else {
+      ranGuidance = true;
+      clock_gettime(CLOCK_REALTIME, &guidanceVRunStart);
     guidance_v_run(autopilot_in_flight);
+      clock_gettime(CLOCK_REALTIME, &guidanceVRunEnd);
+      clock_gettime(CLOCK_REALTIME, &guidanceHRunStart);
     guidance_h_run(autopilot_in_flight);
+      clock_gettime(CLOCK_REALTIME, &guidanceHRunEnd);
 //    printf("Stabilzation Commands [0],[1],[2],[3] = %f, %f, %f, %f\n",stabilization_cmd[0],stabilization_cmd[1],stabilization_cmd[2],stabilization_cmd[3]);
     SetRotorcraftCommands(stabilization_cmd, autopilot_in_flight, autopilot_motors_on);
   }
 
+    struct timespec autoPilotPeriodicEnd;
+    clock_gettime(CLOCK_REALTIME, &autoPilotPeriodicEnd); // Works on Linux
+
+    if(ranGuidance) {
+        long elapsedGuidanceH =
+                (guidanceHRunEnd.tv_sec - guidanceHRunStart.tv_sec) * 1000000 + guidanceHRunEnd.tv_nsec -
+                        guidanceHRunStart.tv_nsec;
+        fprintf(guidanceHLog, "%ld\n", elapsedGuidanceH);
+        fflush(guidanceHLog);  //Prints to a file
+
+        long elapsedGuidanceV =
+                (guidanceVRunEnd.tv_sec - guidanceVRunStart.tv_sec) * 1000000 + guidanceVRunEnd.tv_nsec -
+                guidanceVRunStart.tv_nsec;
+        fprintf(guidanceVLog, "%ld\n", elapsedGuidanceV);
+        fflush(guidanceVLog);  //Prints to a file
+    }
+    else {
+        fprintf(guidanceVLog, "%ld %ld\n",autopilotIteration,-1);
+        fflush(guidanceVLog);  //Prints to a file
+        fprintf(guidanceHLog, "%ld %ld\n",autopilotIteration,-1);
+        fflush(guidanceHLog);  //Prints to a file
+    }
+    long elapsedAutoPilot = (autoPilotPeriodicEnd.tv_sec-autoPilotPeriodicStart.tv_sec)*1000000 + autoPilotPeriodicEnd.tv_nsec-autoPilotPeriodicStart.tv_nsec;
+    fprintf(autopilotLog, "%ld\n", elapsedAutoPilot);
+    fflush(autopilotLog);  //Prints to a file
+//    autopilotIteration++;
 }
 
 
@@ -1205,4 +1273,151 @@ void juav_guidance_h_read_rc(bool in_flight) {
 }
 void juav_autopilot_set_mode_native(short new_mode) {
   autopilot_set_mode(new_mode);
+}
+///Needed for fiji
+int  juav_fiji_stateGetPositionNedIX()  {
+        return stateGetPositionNed_i()->x;
+}
+//
+int  juav_fiji_stateGetPositionNedIY()  {
+        return stateGetPositionNed_i()->y;
+}
+int  juav_fiji_stateGetPositionNedIZ()  {
+        return stateGetPositionNed_i()->z;
+}
+//
+int  juav_fiji_stateGetSpeedNedIX()  {
+        return stateGetSpeedNed_i()->x;
+}
+int  juav_fiji_stateGetSpeedNedIY()  {
+        return stateGetSpeedNed_i()->y;
+}
+int  juav_fiji_stateGetSpeedNedIZ()  {
+        return stateGetSpeedNed_i()->z;
+}
+
+int  juav_fiji_stateGetNedToBodyRMatI_10()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[0];
+}
+
+int  juav_fiji_stateGetNedToBodyRMatI_11()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[1];
+}
+
+int  juav_fiji_stateGetNedToBodyRMatI_12()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[2];
+}
+//
+int  juav_fiji_stateGetNedToBodyRMatI_13()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[3];
+}
+
+int  juav_fiji_stateGetNedToBodyRMatI_14()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[4];
+}
+//
+int  juav_fiji_stateGetNedToBodyRMatI_15()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[5];
+}
+//
+int  juav_fiji_stateGetNedToBodyRMatI_16()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[6];
+}
+//
+int  juav_fiji_stateGetNedToBodyRMatI_17()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[7];
+}
+//
+int  juav_fiji_stateGetNedToBodyRMatI_18()  {
+        struct Int32RMat tmp = *stateGetNedToBodyRMat_i();
+        return tmp.m[8];
+}
+
+int  juav_fiji_stateGetNedToBodyEulersIPsiInt()   {
+        struct Int32Eulers temp = *stateGetNedToBodyEulers_i();
+        return temp.psi;
+}
+
+int  juav_fiji_stateGetNedToBodyEulersITheataInt()   {
+        struct Int32Eulers temp = *stateGetNedToBodyEulers_i();
+        return temp.theta;
+}
+
+int  juav_fiji_stateGetNedToBodyEulersIPhiInt()   {
+        struct Int32Eulers temp = *stateGetNedToBodyEulers_i();
+        return temp.phi;
+}
+
+float  juav_fiji_stateGetNedToBodyEulersIPsiFloat()   {
+        struct FloatEulers temp = *stateGetNedToBodyEulers_f();
+        return temp.psi;
+}
+
+float  juav_fiji_stateGetNedToBodyEulersITheataFloat()   {
+        struct FloatEulers temp = *stateGetNedToBodyEulers_f();
+        return temp.theta;
+}
+
+float  juav_fiji_stateGetNedToBodyEulersIPhiFloat()   {
+        struct FloatEulers temp = *stateGetNedToBodyEulers_f();
+        return temp.phi;
+}
+
+int  juav_fiji_stateGetAccelNedIX() {
+        return stateGetAccelNed_i()->x;
+}
+
+int  juav_fiji_stateGetAccelNedIY() {
+        return stateGetAccelNed_i()->y;
+}
+
+int  juav_fiji_stateGetAccelNedIZ() {
+        return stateGetAccelNed_i()->z;
+}
+float juav_fiji_stateGetSpeedNedFX(){
+    return stateGetSpeedNed_f()->x;
+}
+float juav_fiji_stateGetSpeedNedFY(){
+    return stateGetSpeedNed_f()->y;
+}
+
+float juav_fiji_stateGetSpeedNedFZ() {
+    return stateGetSpeedNed_f()->z;
+}
+float juav_fiji_stateGetAccelNedFX(){
+    return stateGetAccelNed_f()->x;
+}
+
+float juav_fiji_stateGetAccelNedFY(){
+    return stateGetAccelNed_f()->y;
+}
+
+float juav_fiji_stateGetAccelNedFZ() {
+    return stateGetAccelNed_f()->z;
+}
+int juav_fiji_getNavigationCarrotX() {
+    struct EnuCoor_i tmp = juav_get_navigation_carrot();
+    return tmp.x;
+}
+int juav_fiji_getNavigationCarrotY() {
+    struct EnuCoor_i tmp = juav_get_navigation_carrot();
+    return tmp.y;
+}
+int juav_fiji_getNavigationCarrotZ() {
+    struct EnuCoor_i tmp = juav_get_navigation_carrot();
+    return tmp.z;
+}
+void juav_fiji_setAutopilotGroundDetected(bool newValue) {
+    autopilot_ground_detected = newValue;
+}
+void juav_fiji_setAutopilotDetectGroundOnce(bool newValue) {
+    autopilot_detect_ground_once = newValue;
 }

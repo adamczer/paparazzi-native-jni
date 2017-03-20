@@ -48,6 +48,8 @@ double get_fdm_ecef_pos_y_juav();
 double get_fdm_ecef_pos_z_juav();
 //Fdm agl
 double get_fdm_agl_juav();
+double get_sim_dt_juav();
+double get_display_dt_juav();
 
 
 #endif /* NPS_MAIN_H */

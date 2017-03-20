@@ -386,9 +386,15 @@ double get_nps_main_real_initial_time_juav() {
 void nps_main_init_juav() {
   nps_main_init();
 }
-
+static FILE *cyclicExecutiveLog;
 static void nps_main_init(void)
 {
+    cyclicExecutiveLog = fopen("cyclic_executive.log", "w");
+    if (cyclicExecutiveLog == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
 
   nps_main.sim_time = 0.;
   nps_main.display_time = 0.;
@@ -433,33 +439,35 @@ static void nps_main_init(void)
 void nps_main_run_sim_step_juav() {
   nps_main_run_sim_step();
 }
-static bool juavBenchmarkLoggingMainStep = false;
+static bool juavBenchmarkLoggingMainStep = true;
 static int iterCountMain =0;
 static void nps_main_run_sim_step(void)
 {
   //  printf("sim at %f\n", nps_main.sim_time);
-  struct timespec t0;
-  if(juavBenchmarkLoggingMainStep)
+//  if(juavBenchmarkLoggingMainStep)
+    struct timespec t0;
     clock_gettime(CLOCK_REALTIME, &t0);
-
   nps_atmosphere_update(SIM_DT);
-
+//    struct timespec t1;
+//    clock_gettime(CLOCK_REALTIME, &t1);
   nps_autopilot_run_systime_step();
-
+//    struct timespec t2;
+//    clock_gettime(CLOCK_REALTIME, &t2);
   nps_fdm_run_step(autopilot.launch, autopilot.commands, NPS_COMMANDS_NB);
-
+//    struct timespec t3;
+//    clock_gettime(CLOCK_REALTIME, &t3);
   nps_sensors_run_step(nps_main.sim_time);
-
+//    struct timespec t4;
+//    clock_gettime(CLOCK_REALTIME, &t4);
   nps_autopilot_run_step(nps_main.sim_time);
-
-  if(juavBenchmarkLoggingMainStep) {
-    iterCountMain++;
-    struct timespec t1;
-    clock_gettime(CLOCK_REALTIME, &t1); // Works on Linux
-    long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
-    printf("%d", iterCountMain);
-    printf(" %d\n", elapsed);
-  }
+    struct timespec t5;
+    clock_gettime(CLOCK_REALTIME, &t5);
+//  if(juavBenchmarkLoggingMainStep) {
+//    iterCountMain++;
+    long elapsed = (t5.tv_sec-t0.tv_sec)*1000000 + t5.tv_nsec-t0.tv_nsec;
+      fprintf(cyclicExecutiveLog, "%ld\n", elapsed);
+      fflush(cyclicExecutiveLog);  //Prints to a file
+//  }
 
 }
 
@@ -717,5 +725,13 @@ double get_fdm_ecef_pos_z_juav(){
 }
 double get_fdm_agl_juav() {
   return fdm.agl;
+}
+
+double get_sim_dt_juav() {
+    return SIM_DT;
+}
+
+double get_display_dt_juav() {
+    return DISPLAY_DT;
 }
 

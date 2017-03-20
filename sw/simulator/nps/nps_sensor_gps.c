@@ -9,6 +9,17 @@
 
 void nps_sensor_gps_init(struct NpsSensorGps *gps, double time)
 {
+//    printf("NPS_GPS_SPEED_NOISE_STD_DEV = %f\n",NPS_GPS_SPEED_NOISE_STD_DEV);
+//  printf("NPS_GPS_SPEED_LATENCY = %f\n",NPS_GPS_SPEED_LATENCY);
+//  printf("NPS_GPS_POS_NOISE_STD_DEV = %f\n",NPS_GPS_POS_NOISE_STD_DEV);
+//  printf("NPS_GPS_POS_BIAS_INITIAL_X = %f\n",NPS_GPS_POS_BIAS_INITIAL_X);
+//  printf("NPS_GPS_POS_BIAS_INITIAL_Y = %f\n",NPS_GPS_POS_BIAS_INITIAL_Y);
+//  printf("NPS_GPS_POS_BIAS_INITIAL_Z = %f\n",NPS_GPS_POS_BIAS_INITIAL_Z);
+//  printf("NPS_GPS_POS_BIAS_RANDOM_WALK_STD_DEV_X = %f\n",NPS_GPS_POS_BIAS_RANDOM_WALK_STD_DEV_X);
+//  printf("NPS_GPS_POS_BIAS_RANDOM_WALK_STD_DEV_Y = %f\n",NPS_GPS_POS_BIAS_RANDOM_WALK_STD_DEV_Y);
+//  printf("NPS_GPS_POS_BIAS_RANDOM_WALK_STD_DEV_Z = %f\n",NPS_GPS_POS_BIAS_RANDOM_WALK_STD_DEV_Z);
+//  printf("NPS_GPS_POS_LATENCY = %f\n",NPS_GPS_POS_LATENCY);
+//  printf("NPS_GPS_DT = %f\n",NPS_GPS_DT);
   FLOAT_VECT3_ZERO(gps->ecef_pos);
   FLOAT_VECT3_ZERO(gps->ecef_vel);
   gps->hmsl = 0.0;

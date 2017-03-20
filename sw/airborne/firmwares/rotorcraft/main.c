@@ -31,6 +31,8 @@
 #define ABI_C
 
 #include <inttypes.h>
+#include <stdio.h>
+#include <time.h>
 #include "mcu.h"
 #include "mcu_periph/sys_time.h"
 #include "led.h"
@@ -155,9 +157,17 @@ int main(void)
   return 0;
 }
 #endif /* SITL */
-
+static FILE *mainPeriodicLog;
+static long mainPeriodicIterationCount;
 STATIC_INLINE void main_init(void)
 {
+    mainPeriodicIterationCount = 0;
+    mainPeriodicLog = fopen("main_periodic.log", "w");
+    if (mainPeriodicLog == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
   mcu_init();
 
 #if defined(PPRZ_TRIG_INT_COMPR_FLASH)
@@ -242,7 +252,15 @@ STATIC_INLINE void handle_periodic_tasks(void)
 {
 //  printf("handle_periodic_tasks\n");
   if (sys_time_check_and_ack_timer(main_periodic_tid)) {
+    struct timespec t0;
+    clock_gettime(CLOCK_REALTIME, &t0);
     main_periodic();
+    struct timespec t1;
+    clock_gettime(CLOCK_REALTIME, &t1);
+    long elapsed = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_nsec-t0.tv_nsec;
+    fprintf(mainPeriodicLog, "%ld %ld %ld %ld\n", (mainPeriodicIterationCount), (t0.tv_sec)*1000000 + t0.tv_nsec,(t1.tv_sec)*1000000 + t1.tv_nsec,elapsed);
+    fflush(mainPeriodicLog);  //Prints to a file
+      mainPeriodicIterationCount++;
   }
   if (sys_time_check_and_ack_timer(modules_tid)) {
     modules_periodic_task();
