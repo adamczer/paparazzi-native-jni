@@ -57,4 +57,13 @@ void main_event_juav_post(); //prior to autopilot rc
 void main_event_juav_prior();//after autopilot rc
 
 
+//JIVE
+
+bool handel_periodic_task_modules_juav();
+bool handel_periodic_task_radio_juav();
+bool handel_periodic_task_failsafe_juav();
+bool handel_periodic_task_electrical_juav();
+bool handel_periodic_task_telemetry_juav();
+bool handel_periodic_task_baro_juav();
+
 #endif /* MAIN_H */

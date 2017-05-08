@@ -527,6 +527,56 @@ void handle_periodic_tasks_following_main_periodic_juav()
 #endif
 }
 
+bool handel_periodic_task_modules_juav() {
+  if (sys_time_check_and_ack_timer(modules_tid)) {
+    modules_periodic_task();
+    return true;
+  }
+  return false;
+}
+
+bool handel_periodic_task_radio_juav() {
+  if (sys_time_check_and_ack_timer(radio_control_tid)) {
+    radio_control_periodic_task();
+    return true;
+  }
+  return false;
+}
+
+bool handel_periodic_task_failsafe_juav() {
+  if (sys_time_check_and_ack_timer(failsafe_tid)) {
+    failsafe_check();
+    return true;
+  }
+  return false;
+}
+
+bool handel_periodic_task_electrical_juav() {
+  if (sys_time_check_and_ack_timer(electrical_tid)) {
+    electrical_periodic();
+    return true;
+  }
+  return false;
+}
+
+bool handel_periodic_task_telemetry_juav() {
+  if (sys_time_check_and_ack_timer(telemetry_tid)) {
+    telemetry_periodic();
+    return true;
+  }
+  return false;
+}
+
+bool handel_periodic_task_baro_juav() {
+#if USE_BARO_BOARD
+  if (sys_time_check_and_ack_timer(baro_tid)) {
+    baro_periodic();
+    return true;
+  }
+#endif
+  return false;
+}
+
 bool sys_time_check_and_ack_timer_main_periodic_juav() {
   return sys_time_check_and_ack_timer(main_periodic_tid);
 //  if (sys_time_check_and_ack_timer(main_periodic_tid)) {
