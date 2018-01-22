@@ -28,6 +28,7 @@
 #define COMMON_FLIGHT_PLAN_H
 
 #include "std.h"
+#include <stdio.h>
 
 /** In s */
 extern uint16_t stage_time, block_time;
@@ -45,7 +46,62 @@ void nav_goto_block(uint8_t block_id);
 
 #define Block(x) case x: nav_block=x;
 #define NextBlock() { nav_block++; nav_init_block(); }
-#define GotoBlock(b) { nav_block=b; nav_init_block(); }
+//const char *blocks_array[17]  = { \
+// "Wait GPS" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+// "" , \
+//};
+#define GotoBlock(b) { \
+nav_block=b; \
+if(b==0)\
+  printf("Wait Gps\n",b); \
+else if(b==1)\
+  printf("Geo init\n",b); \
+else if(b==2)\
+  printf("Holding point\n",b); \
+else if(b==3)\
+  printf("Start Engine\n",b); \
+else if(b==4)\
+  printf("Takeoff\n",b); \
+else if(b==5)\
+  printf("Standby\n",b); \
+else if(b==6)\
+  printf("stay_p1\n",b); \
+else if(b==7)\
+  printf("go_p2\n",b); \
+else if(b==8)\
+  printf("line_p1_p2\n",b); \
+else if(b==9)\
+  printf("route\n",b); \
+else if(b==10)\
+  printf("test yaw\n",b); \
+else if(b==11)\
+  printf("circle CAM\n",b); \
+else if(b==12)\
+  printf("land here\n",b); \
+else if(b==13)\
+  printf("land\n",b); \
+else if(b==14)\
+  printf("flare\n",b); \
+else if(b==15)\
+  printf("landed\n",b); \
+else if(b==16)\
+  printf("HOME\n",b); \
+nav_init_block(); }
 
 #define Stage(s) case s: nav_stage=s;
 #define NextStage() { nav_stage++; InitStage(); }

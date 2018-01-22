@@ -68,7 +68,8 @@ void radio_control_feed(void)
   spektrum_available = TRUE;
 }
 #else //RADIO_CONTROL
-void radio_control_feed(void) {}
+void radio_control_feed(void) {
+}
 #endif //RADIO_CONTROL
 
 #else // not NPS -> simple ocaml sim

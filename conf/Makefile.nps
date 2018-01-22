@@ -63,7 +63,7 @@ $(TARGET).objso	= $($(TARGET).srcs:%.c=$(OBJDIR)/%.o)
 $(TARGET).objsoxx = $($(TARGET).objso:%.cpp=$(OBJDIR)/%.o)
 $(TARGET).objs	= $($(TARGET).objsoxx:%.S=$(OBJDIR)/%.o)
 
-all compile: check_jsbsim $(OBJDIR)/simsitl $(OBJDIR)/libpprz.so
+all compile: check_jsbsim $(OBJDIR)/simsitl $(OBJDIR)/libpprz.so $(OBJDIR)/libpprz.a
 
 
 check_jsbsim:
@@ -77,6 +77,18 @@ $(OBJDIR)/simsitl : $($(TARGET).objs)
 $(OBJDIR)/libpprz.so : $($(TARGET).objs)
 	@echo LD $@
 	$(Q)$(CXX) $(CXXFLAGS) -shared -Wl,-soname,libpprz.so -o $@ $($(TARGET).objs) $(LDFLAGS)
+
+$(OBJDIR)/libpprz.a : $($(TARGET).objs)
+	@echo LD $@
+#	@echo arflags=$(ARFLAGS)
+#	@echo q=$(Q)
+#	@echo ar=$(AR)
+#	@echo libxxx=$(LIBXXX)
+#	@echo cxx=$(CXX)
+#	@echo CXXFLAGS=$(CXXFLAGS)
+#	@echo libxxx=$(LIBXXX)
+#   @echo $(AR) rvs $@ $($(TARGET).objs)
+	$(AR) rvs $@ $($(TARGET).objs)
 
 %.s: %.c
 	$(CC) $(CFLAGS) -S -o $@ $<

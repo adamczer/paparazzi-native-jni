@@ -389,7 +389,7 @@ void nps_main_init_juav() {
 static FILE *cyclicExecutiveLog;
 static void nps_main_init(void)
 {
-    cyclicExecutiveLog = fopen("cyclic_executive.log", "w");
+    cyclicExecutiveLog = fopen("cyclic_executive_pprz.log", "w");
     if (cyclicExecutiveLog == NULL)
     {
         printf("Error opening file!\n");
